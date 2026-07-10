@@ -1,0 +1,1416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Shop Win - Order Management</title>
+<style>
+  * { box-sizing: border-box; }
+  :root {
+    --bg: #eef1f6;
+    --panel-bg: #ffffff;
+    --input-bg: #ffffff;
+    --text: #14161a;
+    --muted: #666e7a;
+    --border: #14161a;
+    --border-soft: #e0e3e9;
+    --accent: #3b5bfd;
+    --accent-2: #7c3aed;
+    --danger: #d92d20;
+    --chip-bg: #f1f3f8;
+    --radius: 16px;
+    --shadow: 0 8px 28px rgba(20,22,26,0.08);
+  }
+  body[data-theme="dark"] {
+    --bg: #0e1015;
+    --panel-bg: #1a1d25;
+    --input-bg: #12141a;
+    --text: #edf0f5;
+    --muted: #9aa3b2;
+    --border: #333947;
+    --border-soft: #2a2f3a;
+    --accent: #7c93ff;
+    --accent-2: #b794f6;
+    --danger: #ff7a72;
+    --chip-bg: #232732;
+    --shadow: 0 12px 32px rgba(0,0,0,0.5);
+  }
+  body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: var(--bg);
+    margin: 0;
+    padding: 0;
+    color: var(--text);
+    transition: background 0.25s ease, color 0.25s ease;
+  }
+  .app-shell { max-width: 1000px; margin: 0 auto; padding: 20px; position: relative; }
+
+  .theme-toggle {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    background: var(--panel-bg);
+    color: var(--text);
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .brand {
+    text-align: center;
+    padding: 20px 0 10px 0;
+  }
+  .brand .shop-name {
+    font-family: 'Arial Rounded MT Bold', 'Varela Round', 'Segoe UI', Arial, sans-serif;
+    font-size: 40px;
+    font-weight: 900;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .brand .sub {
+    font-size: 12px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: bold;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin: 18px 0 20px 0;
+    flex-wrap: wrap;
+  }
+  .tab-btn {
+    background: var(--panel-bg);
+    color: var(--text);
+    border: 2px solid var(--border);
+    border-radius: 20px;
+    padding: 9px 22px;
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+  .tab-btn.active { background: linear-gradient(90deg, var(--accent), var(--accent-2)); border-color: transparent; color: #fff; }
+
+  .panel {
+    background: var(--panel-bg);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 24px;
+    display: none;
+  }
+  .panel.active { display: block; }
+
+  h2.panel-title {
+    margin: 0 0 18px 0;
+    font-size: 20px;
+    letter-spacing: 1px;
+    border-bottom: 2px solid var(--border);
+    padding-bottom: 10px;
+    color: var(--text);
+  }
+
+  label.field-label {
+    display: block;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 5px;
+    margin-top: 12px;
+  }
+  input[type="text"], input[type="number"], input[type="date"], textarea, select {
+    width: 100%;
+    padding: 9px 10px;
+    font-size: 15px;
+    border: 1px solid var(--border-soft);
+    border-radius: 8px;
+    font-family: Arial, sans-serif;
+    background: var(--input-bg);
+    color: var(--text);
+  }
+  textarea { resize: vertical; }
+
+  .btn {
+    background: var(--accent);
+    color: #fff;
+    border: 2px solid var(--accent);
+    border-radius: 20px;
+    padding: 10px 22px;
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    margin-top: 14px;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .btn:hover { background: var(--panel-bg); color: var(--accent); }
+  .btn.secondary { background: var(--panel-bg); color: var(--text); border-color: var(--border); }
+  .btn.secondary:hover { background: var(--text); color: var(--panel-bg); border-color: var(--text); }
+  .btn.small { padding: 5px 14px; font-size: 11px; margin-top: 0; }
+  .btn.danger { border-color: var(--danger); color: var(--danger); background: var(--panel-bg); }
+  .btn.danger:hover { background: var(--danger); color: #fff; }
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+  table.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    font-size: 14px;
+  }
+  table.data-table th {
+    text-align: left;
+    border-bottom: 2px solid var(--border);
+    padding: 8px 6px;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text);
+  }
+  table.data-table td {
+    padding: 8px 6px;
+    border-bottom: 1px solid var(--border-soft);
+    vertical-align: middle;
+  }
+  table.data-table td.num, table.data-table th.num { text-align: right; }
+  table.data-table input { padding: 5px 6px; font-size: 14px; }
+  table.data-table tbody tr:hover { background: var(--chip-bg); }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 640px) { .grid2 { grid-template-columns: 1fr; } }
+
+  .add-item-row {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+    margin-top: 14px;
+    flex-wrap: wrap;
+  }
+  .add-item-row .grow { flex: 2; min-width: 180px; }
+  .add-item-row .qty { flex: 0 0 90px; }
+
+  .prod-search-wrap { position: relative; }
+  .prod-search-results {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--panel-bg);
+    border: 2px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 12px 12px;
+    max-height: 220px;
+    overflow-y: auto;
+    z-index: 50;
+    display: none;
+    box-shadow: var(--shadow);
+  }
+  .prod-search-results.show { display: block; }
+  .prod-search-results .psr-item {
+    padding: 9px 12px;
+    cursor: pointer;
+    font-size: 14px;
+    border-bottom: 1px solid var(--border-soft);
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    color: var(--text);
+  }
+  .prod-search-results .psr-item:last-child { border-bottom: none; }
+  .prod-search-results .psr-item:hover { background: var(--accent); color: #fff; }
+  .prod-search-results .psr-name { font-weight: bold; }
+  .prod-search-results .psr-sku { color: var(--muted); font-size: 12px; }
+  .prod-search-results .psr-empty { padding: 10px 12px; color: var(--muted); font-size: 13px; cursor: default; }
+  .prod-search-results .psr-item:hover .psr-sku { color: #eee; }
+
+  .selected-product-chip {
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 8px;
+    padding: 8px 12px;
+    background: var(--chip-bg);
+    border: 1px solid var(--border-soft);
+    border-radius: 20px;
+    font-size: 13px;
+    color: var(--text);
+  }
+  .selected-product-chip.show { display: flex; }
+  .selected-product-chip .spc-remove {
+    cursor: pointer;
+    font-weight: bold;
+    color: var(--danger);
+    border: none;
+    background: none;
+    font-size: 14px;
+  }
+
+  .bulk-print-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+  .bulk-print-bar .sel-count {
+    font-size: 12px;
+    font-weight: bold;
+    color: var(--accent);
+  }
+
+  .order-search-bar { margin-bottom: 14px; max-width: 420px; }
+
+  .export-bar {
+    display: flex;
+    gap: 14px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    margin: 4px 0 20px 0;
+    padding: 14px 16px;
+    border: 1px dashed var(--border-soft);
+    border-radius: 12px;
+    background: var(--chip-bg);
+  }
+  .export-bar > div { min-width: 150px; }
+  .export-bar .field-label { margin-top: 0; }
+
+  .totals-box {
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 2px solid var(--border);
+  }
+  .totals-box .trow {
+    display: flex;
+    justify-content: space-between;
+    font-size: 16px;
+    padding: 5px 0;
+  }
+  .totals-box .trow.grand { font-size: 22px; font-weight: 900; border-top: 1px solid var(--border-soft); margin-top: 6px; padding-top: 10px; }
+
+  .badge {
+    display: inline-block;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    color: #fff;
+    border-radius: 12px;
+    padding: 2px 10px;
+    font-size: 11px;
+    font-weight: bold;
+  }
+
+  .empty-note { color: var(--muted); font-size: 13px; padding: 14px 0; }
+
+  .toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #000;
+    color: #fff;
+    padding: 12px 22px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+    z-index: 999;
+  }
+  .toast.show { opacity: 1; }
+
+  /* Packing slip / waybill styling reused for print */
+  #printArea { display: none; }
+  .slip {
+    max-width: 650px;
+    margin: 0 auto 0 auto;
+    background: #fff;
+    color: #000;
+    border: 3px solid #000;
+    border-radius: 26px;
+    overflow: hidden;
+    page-break-after: always;
+  }
+  .slip .s-header {
+    text-align: center;
+    padding: 26px 20px 20px 20px;
+    border-bottom: 3px double #000;
+  }
+  .slip .s-shop-name {
+    font-family: 'Arial Rounded MT Bold', 'Varela Round', 'Segoe UI', Arial, sans-serif;
+    font-size: 48px;
+    font-weight: 900;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+  .slip .s-tagline {
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #333;
+    margin-top: 6px;
+    font-weight: bold;
+  }
+  .slip .s-doc-title {
+    margin-top: 14px;
+    display: inline-block;
+    border: 2px solid #000;
+    border-radius: 24px;
+    padding: 7px 28px;
+    font-size: 16px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    font-weight: bold;
+  }
+  .slip .s-body { padding: 24px 30px 8px 30px; }
+  .slip .s-section {
+    margin-bottom: 16px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid #bbb;
+  }
+  .slip .s-label {
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #333;
+    margin-bottom: 5px;
+  }
+  .slip .s-value { font-size: 22px; white-space: pre-line; font-weight: 500; }
+  .slip .s-contacts { display: flex; gap: 20px; }
+  .slip .s-contacts div { flex: 1; }
+  .slip table.s-items { width: 100%; border-collapse: collapse; font-size: 18px; margin-top: 8px; }
+  .slip table.s-items th { text-align: left; border-bottom: 2px solid #000; padding: 8px 5px; font-size: 13px; letter-spacing: 1px; text-transform: uppercase; }
+  .slip table.s-items th.num, .slip table.s-items td.num { text-align: right; }
+  .slip table.s-items td { padding: 10px 5px; border-bottom: 1px solid #ddd; }
+  .slip .s-totals { padding: 14px 0 4px 0; }
+  .slip .s-totals .trow { display: flex; justify-content: space-between; font-size: 19px; padding: 4px 0; }
+  .slip .s-totals .trow.grand { font-size: 27px; font-weight: 900; border-top: 2px solid #000; margin-top: 6px; padding-top: 10px; }
+  .slip .s-barcode-area {
+    text-align: center;
+    padding: 20px 20px 24px 20px;
+    border-top: 3px double #000;
+    background: #fafafa;
+  }
+  .slip .s-barcode-area svg { max-width: 100%; }
+  .slip .s-footer {
+    text-align: center;
+    font-size: 12px;
+    letter-spacing: 1px;
+    color: #666;
+    padding: 12px 0 18px 0;
+  }
+
+  /* Export report (CSV/Excel/PDF summary) styling — also black & white for print */
+  .export-doc { max-width: 900px; margin: 0 auto; background: #fff; color: #000; border: 3px solid #000; border-radius: 26px; overflow: hidden; }
+  .export-doc .ed-header { text-align: center; padding: 22px 20px 18px 20px; border-bottom: 3px double #000; }
+  .export-doc .ed-shop-name { font-family: 'Arial Rounded MT Bold', 'Varela Round', 'Segoe UI', Arial, sans-serif; font-size: 38px; font-weight: 900; letter-spacing: 3px; text-transform: uppercase; }
+  .export-doc .ed-sub { font-size: 13px; letter-spacing: 2px; text-transform: uppercase; color: #333; font-weight: bold; margin-top: 6px; }
+  .export-doc .ed-range { font-size: 13px; color: #555; margin-top: 8px; }
+  .export-doc .ed-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .export-doc .ed-table th { text-align: left; border-bottom: 2px solid #000; padding: 10px 14px; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; }
+  .export-doc .ed-table td { padding: 9px 14px; border-bottom: 1px solid #ddd; }
+  .export-doc .ed-table td.num, .export-doc .ed-table th.num { text-align: right; }
+  .export-doc .ed-table tfoot td { border-top: 2px solid #000; border-bottom: none; padding: 12px 14px; font-size: 15px; }
+
+  @media print {
+    @page { size: A4; margin: 12mm; }
+    body { background: #fff !important; color: #000 !important; }
+    .app-shell > *:not(#printArea) { display: none !important; }
+    #printArea { display: block !important; }
+    .slip { max-width: 100%; }
+    .slip:last-child { page-break-after: auto; }
+    .export-doc { max-width: 100%; }
+  }
+</style>
+</head>
+<body>
+<div class="app-shell">
+
+  <button class="theme-toggle" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle dark mode">🌙</button>
+
+  <div class="brand">
+    <div class="shop-name">Shop Win</div>
+    <div class="sub">Order Management System</div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="products" onclick="switchTab('products')">Products</button>
+    <button class="tab-btn" data-tab="neworder" onclick="switchTab('neworder')">New Order</button>
+    <button class="tab-btn" data-tab="orders" onclick="switchTab('orders')">Orders</button>
+    <button class="tab-btn" data-tab="settings" onclick="switchTab('settings')">Settings</button>
+  </div>
+
+  <!-- PRODUCTS PANEL -->
+  <div class="panel active" id="panel-products">
+    <h2 class="panel-title">Product Management</h2>
+
+    <div class="grid2">
+      <div>
+        <label class="field-label">SKU</label>
+        <input type="text" id="newSku" placeholder="e.g. SW-001">
+      </div>
+      <div>
+        <label class="field-label">Product Name</label>
+        <input type="text" id="newProdName" placeholder="e.g. Blue T-Shirt">
+      </div>
+    </div>
+    <div class="grid2">
+      <div>
+        <label class="field-label">Price (Rs)</label>
+        <input type="number" id="newProdPrice" min="0" step="0.01" placeholder="0.00">
+      </div>
+      <div></div>
+    </div>
+    <button class="btn" onclick="addProduct()">+ Add Product</button>
+
+    <h2 class="panel-title" style="margin-top:26px;">Product List</h2>
+    <table class="data-table" id="productTable">
+      <thead>
+        <tr><th>SKU</th><th>Name</th><th class="num">Price (Rs)</th><th></th></tr>
+      </thead>
+      <tbody id="productTableBody"></tbody>
+    </table>
+    <div class="empty-note" id="productEmptyNote" style="display:none;">No products yet. Add your first product above.</div>
+  </div>
+
+  <!-- NEW ORDER PANEL -->
+  <div class="panel" id="panel-neworder">
+    <h2 class="panel-title" id="neworderTitle">Create New Order</h2>
+
+    <label class="field-label">Customer Address</label>
+    <textarea id="ordAddress" rows="3" placeholder="Full customer address..."></textarea>
+
+    <div class="grid2">
+      <div>
+        <label class="field-label">Contact Number 1</label>
+        <input type="text" id="ordContact1" placeholder="+94 77 123 4567">
+      </div>
+      <div>
+        <label class="field-label">Contact Number 2</label>
+        <input type="text" id="ordContact2" placeholder="+94 71 987 6543">
+      </div>
+    </div>
+
+    <h2 class="panel-title" style="margin-top:24px;">Items</h2>
+
+    <label class="field-label">Search Product</label>
+    <div class="prod-search-wrap">
+      <input type="text" id="ordProductSearch" placeholder="Type product name or SKU..."
+             autocomplete="off"
+             oninput="onProductSearchInput()"
+             onfocus="onProductSearchInput()"
+             onblur="hideProductSearchResults()">
+      <div class="prod-search-results" id="ordProductResults"></div>
+    </div>
+    <div class="selected-product-chip" id="selectedProductChip">
+      <span id="selectedProductLabel"></span>
+      <button type="button" class="spc-remove" onclick="clearSelectedProduct()" title="Remove selection">✕</button>
+    </div>
+
+    <div class="add-item-row">
+      <div class="qty">
+        <label class="field-label">Qty</label>
+        <input type="number" id="ordQty" value="1" min="1">
+      </div>
+      <div>
+        <button class="btn small" style="margin-top:0;" onclick="addOrderItem()">+ Add Item</button>
+      </div>
+    </div>
+
+    <table class="data-table" style="margin-top:16px;">
+      <thead>
+        <tr><th>Item</th><th class="num">Qty</th><th class="num">Price (Rs)</th><th class="num">Total (Rs)</th><th></th></tr>
+      </thead>
+      <tbody id="ordItemsBody"></tbody>
+    </table>
+    <div class="empty-note" id="ordItemsEmptyNote">No items added yet.</div>
+
+    <label class="field-label">Delivery Fee (Rs)</label>
+    <input type="number" id="ordDeliveryFee" value="0" min="0" step="0.01" oninput="renderOrderTotals()" style="max-width:220px;">
+
+    <div class="totals-box">
+      <div class="trow"><span>Subtotal</span><span id="ordSubtotal">Rs 0.00</span></div>
+      <div class="trow"><span>Delivery Fee</span><span id="ordDeliveryDisplay">Rs 0.00</span></div>
+      <div class="trow grand"><span>Total</span><span id="ordGrandTotal">Rs 0.00</span></div>
+    </div>
+
+    <div class="btn-row" id="neworderActions">
+      <button class="btn" onclick="createOrderAndPrint()">Create Order &amp; Print Packing Slip</button>
+      <button class="btn secondary" onclick="createOrderOnly()">Create Order Only</button>
+    </div>
+  </div>
+
+  <!-- ORDERS PANEL -->
+  <div class="panel" id="panel-orders">
+    <h2 class="panel-title">Order History</h2>
+
+    <div class="order-search-bar">
+      <label class="field-label">Search Orders</label>
+      <input type="text" id="orderSearchInput" placeholder="Search by shop order no, waybill no, customer, or phone..." oninput="renderOrders()">
+    </div>
+
+    <div class="bulk-print-bar">
+      <button class="btn small" style="margin-top:0;" onclick="bulkPrintSelected()">🖨️ Print Selected</button>
+      <button class="btn small secondary" style="margin-top:0;" onclick="toggleSelectAll()">Select / Deselect All</button>
+      <span class="sel-count" id="selectedCount"></span>
+    </div>
+
+    <table class="data-table" id="ordersTable">
+      <thead>
+        <tr>
+          <th style="width:26px;"><input type="checkbox" id="selectAllBox" onclick="toggleSelectAll(true)"></th>
+          <th>Shop Order No</th><th>Waybill No</th><th>Date</th><th>Customer</th><th class="num">Total (Rs)</th><th></th>
+        </tr>
+      </thead>
+      <tbody id="ordersTableBody"></tbody>
+    </table>
+    <div class="empty-note" id="ordersEmptyNote" style="display:none;">No orders yet.</div>
+
+    <h2 class="panel-title" style="margin-top:28px;">Export Orders</h2>
+    <div class="export-bar">
+      <div>
+        <label class="field-label">From Date</label>
+        <input type="date" id="exportFromDate">
+      </div>
+      <div>
+        <label class="field-label">To Date</label>
+        <input type="date" id="exportToDate">
+      </div>
+      <div class="btn-row" style="margin-top:0;">
+        <button class="btn small secondary" style="margin-top:0;" onclick="exportOrders('csv')">⬇ CSV</button>
+        <button class="btn small secondary" style="margin-top:0;" onclick="exportOrders('xlsx')">⬇ Excel</button>
+        <button class="btn small secondary" style="margin-top:0;" onclick="exportOrders('pdf')">⬇ PDF</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SETTINGS PANEL -->
+  <div class="panel" id="panel-settings">
+    <h2 class="panel-title">Settings</h2>
+    <div class="grid2">
+      <div>
+        <label class="field-label">Shop Order Prefix</label>
+        <input type="text" id="shopOrderPrefixInput" placeholder="e.g. SW-" style="max-width:260px;">
+      </div>
+      <div>
+        <label class="field-label">Next Shop Order Number (backend counter)</label>
+        <input type="text" id="nextShopOrderInput" style="max-width:260px;">
+      </div>
+    </div>
+    <div class="grid2">
+      <div>
+        <label class="field-label">Next Waybill Number (backend counter)</label>
+        <input type="text" id="nextWaybillInput" style="max-width:260px;">
+      </div>
+      <div></div>
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-top:6px;">The <strong>Shop Order Number</strong> is numbered as <strong>Prefix + Number</strong> (e.g. SW-025) and is completely separate from the <strong>Waybill Number</strong>, which is a plain number with no prefix (e.g. 1025). Both counters shown are what will be used for the <strong>next</strong> order you create — change either anytime to re-base your numbering.</div>
+    <button class="btn" onclick="saveWaybillSettings()">Save</button>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+<div id="printArea"></div>
+
+<script>
+/*! JsBarcode v3.12.3 | (c) Johan Lindell | MIT license */
+!function(t){var e={};function n(r){if(e[r])return e[r].exports;var o=e[r]={i:r,l:!1,exports:{}};return t[r].call(o.exports,o,o.exports,n),o.l=!0,o.exports}n.m=t,n.c=e,n.d=function(t,e,r){n.o(t,e)||Object.defineProperty(t,e,{enumerable:!0,get:r})},n.r=function(t){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(t,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(t,"__esModule",{value:!0})},n.t=function(t,e){if(1&e&&(t=n(t)),8&e)return t;if(4&e&&"object"==typeof t&&t&&t.__esModule)return t;var r=Object.create(null);if(n.r(r),Object.defineProperty(r,"default",{enumerable:!0,value:t}),2&e&&"string"!=typeof t)for(var o in t)n.d(r,o,function(e){return t[e]}.bind(null,o));return r},n.n=function(t){var e=t&&t.__esModule?function(){return t.default}:function(){return t};return n.d(e,"a",e),e},n.o=function(t,e){return Object.prototype.hasOwnProperty.call(t,e)},n.p="",n(n.s=16)}([function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0});e.default=function t(e,n){!function(t,e){if(!(t instanceof e))throw new TypeError("Cannot call a class as a function")}(this,t),this.data=e,this.text=n.text||e,this.options=n}},function(t,e,n){"use strict";var r;function o(t,e,n){return e in t?Object.defineProperty(t,e,{value:n,enumerable:!0,configurable:!0,writable:!0}):t[e]=n,t}Object.defineProperty(e,"__esModule",{value:!0});var i=e.SET_A=0,a=e.SET_B=1,u=e.SET_C=2,f=(e.SHIFT=98,e.START_A=103),c=e.START_B=104,s=e.START_C=105;e.MODULO=103,e.STOP=106,e.FNC1=207,e.SET_BY_CODE=(o(r={},f,i),o(r,c,a),o(r,s,u),r),e.SWAP={101:i,100:a,99:u},e.A_START_CHAR=String.fromCharCode(208),e.B_START_CHAR=String.fromCharCode(209),e.C_START_CHAR=String.fromCharCode(210),e.A_CHARS="[\0-_È-Ï]",e.B_CHARS="[ -È-Ï]",e.C_CHARS="(Ï*[0-9]{2}Ï*)",e.BARS=[11011001100,11001101100,11001100110,10010011e3,10010001100,10001001100,10011001e3,10011000100,10001100100,11001001e3,11001000100,11000100100,10110011100,10011011100,10011001110,10111001100,10011101100,10011100110,11001110010,11001011100,11001001110,11011100100,11001110100,11101101110,11101001100,11100101100,11100100110,11101100100,11100110100,11100110010,11011011e3,11011000110,11000110110,10100011e3,10001011e3,10001000110,10110001e3,10001101e3,10001100010,11010001e3,11000101e3,11000100010,10110111e3,10110001110,10001101110,10111011e3,10111000110,10001110110,11101110110,11010001110,11000101110,11011101e3,11011100010,11011101110,11101011e3,11101000110,11100010110,11101101e3,11101100010,11100011010,11101111010,11001000010,11110001010,1010011e4,10100001100,1001011e4,10010000110,10000101100,10000100110,1011001e4,10110000100,1001101e4,10011000010,10000110100,10000110010,11000010010,1100101e4,11110111010,11000010100,10001111010,10100111100,10010111100,10010011110,10111100100,10011110100,10011110010,11110100100,11110010100,11110010010,11011011110,11011110110,11110110110,10101111e3,10100011110,10001011110,10111101e3,10111100010,11110101e3,11110100010,10111011110,10111101110,11101011110,11110101110,11010000100,1101001e4,11010011100,1100011101011]},function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0});e.SIDE_BIN="101",e.MIDDLE_BIN="01010",e.BINARIES={L:["0001101","0011001","0010011","0111101","0100011","0110001","0101111","0111011","0110111","0001011"],G:["0100111","0110011","0011011","0100001","0011101","0111001","0000101","0010001","0001001","0010111"],R:["1110010","1100110","1101100","1000010","1011100","1001110","1010000","1000100","1001000","1110100"],O:["0001101","0011001","0010011","0111101","0100011","0110001","0101111","0111011","0110111","0001011"],E:["0100111","0110011","0011011","0100001","0011101","0111001","0000101","0010001","0001001","0010111"]},e.EAN2_STRUCTURE=["LL","LG","GL","GG"],e.EAN5_STRUCTURE=["GGLLL","GLGLL","GLLGL","GLLLG","LGGLL","LLGGL","LLLGG","LGLGL","LGLLG","LLGLG"],e.EAN13_STRUCTURE=["LLLLLL","LLGLGG","LLGGLG","LLGGGL","LGLLGG","LGGLLG","LGGGLL","LGLGLG","LGLGGL","LGGLGL"]},function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var r=n(2);e.default=function(t,e,n){var o=t.split("").map((function(t,n){return r.BINARIES[e[n]]})).map((function(e,n){return e?e[t[n]]:""}));if(n){var i=t.length-1;o=o.map((function(t,e){return e<i?t+n:t}))}return o.join("")}},function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var r,o=function(){function t(t,e){for(var n=0;n<e.length;n++){var r=e[n];r.enumerable=r.enumerable||!1,r.configurable=!0,"value"in r&&(r.writable=!0),Object.defineProperty(t,r.key,r)}}return function(e,n,r){return n&&t(e.prototype,n),r&&t(e,r),e}}(),i=n(0);var a=function(t){function e(t,n){return function(t,e){if(!(t instanceof e))throw new TypeError("Cannot call a class as a function")}(this,e),function(t,e){if(!t)throw new ReferenceError("this hasn't been initialised - super() hasn't been called");return!e||"object"!=typeof e&&"function"!=typeof e?t:e}(this,(e.__proto__||Object.getPrototypeOf(e)).call(this,t,n))}return function(t,e){if("function"!=typeof e&&null!==e)throw new TypeError("Super expression must either be null or a function, not "+typeof e);t.prototype=Object.create(e&&e.prototype,{constructor:{value:t,enumerable:!1,writable:!0,configurable:!0}}),e&&(Object.setPrototypeOf?Object.setPrototypeOf(t,e):t.__proto__=e)}(e,t),o(e,[{key:"encode",value:function(){for(var t="110",e=0;e<this.data.length;e++){var n=parseInt(this.data[e]).toString(2);n=u(n,4-n.length);for(var r=0;r<n.length;r++)t+="0"==n[r]?"100":"110"}return{data:t+="1001",text:this.text}}},{key:"valid",value:function(){return-1!==this.data.search(/^[0-9]+$/)}}]),e}(((r=i)&&r.__esModule?r:{default:r}).default);function u(t,e){for(var n=0;n<e;n++)t="0"+t;return t}e.default=a},function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var r,o=function(){function t(t,e){for(var n=0;n<e.length;n++){var r=e[n];r.enumerable=r.enumerable||!1,r.configurable=!0,"value"in r&&(r.writable=!0),Object.defineProperty(t,r.key,r)}}return function(e,n,r){return n&&t(e.prototype,n),r&&t(e,r),e}}(),i=n(0),a=(r=i)&&r.__esModule?r:{default:r},u=n(1);var f=function(t){function e(t,n){!function(t,e){if(!(t instanceof e))throw new TypeError("Cannot call a class as a function")}(this,e);var r=function(t,e){if(!t)throw new ReferenceError("this hasn't been initialised - super() hasn't been called");return!e||"object"!=typeof e&&"function"!=typeof e?t:e}(this,(e.__proto__||Object.getPrototypeOf(e)).call(this,t.substring(1),n));return r.bytes=t.split("").map((function(t){return t.charCodeAt(0)})),r}return function(t,e){if("function"!=typeof e&&null!==e)throw new TypeError("Super expression must either be null or a function, not "+typeof e);t.prototype=Object.create(e&&e.prototype,{constructor:{value:t,enumerable:!1,writable:!0,configurable:!0}}),e&&(Object.setPrototypeOf?Object.setPrototypeOf(t,e):t.__proto__=e)}(e,t),o(e,[{key:"valid",value:function(){return/^[\x00-\x7F\xC8-\xD3]+$/.test(this.data)}},{key:"encode",value:function(){var t=this.bytes,n=t.shift()-105,r=u.SET_BY_CODE[n];if(void 0===r)throw new RangeError("The encoding does not start with a start character.");!0===this.shouldEncodeAsEan128()&&t.unshift(u.FNC1);var o=e.next(t,1,r);return{text:this.text===this.data?this.text.replace(/[^\x20-\x7E]/g,""):this.text,data:e.getBar(n)+o.result+e.getBar((o.checksum+n)%u.MODULO)+e.getBar(u.STOP)}}},{key:"shouldEncodeAsEan128",value:function(){var t=this.options.ean128||!1;return"string"==typeof t&&(t="true"===t.toLowerCase()),t}}],[{key:"getBar",value:function(t){return u.BARS[t]?u.BARS[t].toString():""}},{key:"correctIndex",value:function(t,e){if(e===u.SET_A){var n=t.shift();return n<32?n+64:n-32}return e===u.SET_B?t.shift()-32:10*(t.shift()-48)+t.shift()-48}},{key:"next",value:function(t,n,r){if(!t.length)return{result:"",checksum:0};var o=void 0,i=void 0;if(t[0]>=200){i=t.shift()-105;var a=u.SWAP[i];void 0!==a?o=e.next(t,n+1,a):(r!==u.SET_A&&r!==u.SET_B||i!==u.SHIFT||(t[0]=r===u.SET_A?t[0]>95?t[0]-96:t[0]:t[0]<32?t[0]+96:t[0]),o=e.next(t,n+1,r))}else i=e.correctIndex(t,r),o=e.next(t,n+1,r);var f=i*n;return{result:e.getBar(i)+o.result,checksum:f+o.checksum}}}]),e}(a.default);e.default=f},function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0}),e.mod10=function(t){for(var e=0,n=0;n<t.length;n++){var r=parseInt(t[n]);(n+t.length)%2==0?e+=r:e+=2*r%10+Math.floor(2*r/10)}return(10-e%10)%10},e.mod11=function(t){for(var e=0,n=[2,3,4,5,6,7],r=0;r<t.length;r++){var o=parseInt(t[t.length-1-r]);e+=n[r%n.length]*o}return(11-e%11)%11}},function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var r=Object.assign||function(t){for(var e=1;e<arguments.length;e++){var n=arguments[e];for(var r in n)Object.prototype.hasOwnProperty.call(n,r)&&(t[r]=n[r])}return t};e.default=function(t,e){return r({},t,e)}},function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var r=function(){function t(t,e){for(var n=0;n<e.length;n++){var r=e[n];r.enumerable=r.enumerable||!1,r.configurable=!0,"value"in r&&(r.writable=!0),Object.defineProperty(t,r.key,r)}}return function(e,n,r){return n&&t(e.prototype,n),r&&t(e,r),e}}(),o=n(2),i=a(n(3));function a(t){return t&&t.__esModule?t:{default:t}}var u=function(t){function e(t,n){!function(t,e){if(!(t instanceof e))throw new TypeError("Cannot call a class as a function")}(this,e);var r=function(t,e){if(!t)throw new ReferenceError("this hasn't been initialised - super() hasn't been called");return!e||"object"!=typeof e&&"function"!=typeof e?t:e}(this,(e.__proto__||Object.getPrototypeOf(e)).call(this,t,n));return r.fontSize=!n.flat&&n.fontSize>10*n.width?10*n.width:n.fontSize,r.guardHeight=n.height+r.fontSize/2+n.textMargin,r}return function(t,e){if("function"!=typeof e&&null!==e)throw new TypeError("Super expression must either be null or a function, not "+typeof e);t.prototype=Object.create(e&&e.prototype,{constructor:{value:t,enumerable:!1,writable:!0,configurable:!0}}),e&&(Object.setPrototypeOf?Object.setPrototypeOf(t,e):t.__proto__=e)}(e,t),r(e,[{key:"encode",value:function(){return this.options.flat?this.encodeFlat():this.encodeGuarded()}},{key:"leftText",value:function(t,e){return this.text.substr(t,e)}},{key:"leftEncode",value:function(t,e){return(0,i.default)(t,e)}},{key:"rightText",value:function(t,e){return this.text.substr(t,e)}},{key:"rightEncode",value:function(t,e){return(0,i.default)(t,e)}},{key:"encodeGuarded",value:function(){var t={fontSize:this.fontSize},e={height:this.guardHeight};return[{data:o.SIDE_BIN,options:e},{data:this.leftEncode(),text:this.leftText(),options:t},{data:o.MIDDLE_BIN,options:e},{data:this.rightEncode(),text:this.rightText(),options:t},{data:o.SIDE_BIN,options:e}]}},{key:"encodeFlat",value:function(){return{data:[o.SIDE_BIN,this.leftEncode(),o.MIDDLE_BIN,this.rightEncode(),o.SIDE_BIN].join(""),text:this.text}}}]),e}(a(n(0)).default);e.default=u},function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var r=function(){function t(t,e){for(var n=0;n<e.length;n++){var r=e[n];r.enumerable=r.enumerable||!1,r.configurable=!0,"value"in r&&(r.writable=!0),Object.defineProperty(t,r.key,r)}}return function(e,n,r){return n&&t(e.prototype,n),r&&t(e,r),e}}();e.checksum=u;var o=i(n(3));function i(t){return t&&t.__esModule?t:{default:t}}var a=function(t){function e(t,n){!function(t,e){if(!(t instanceof e))throw new TypeError("Cannot call a class as a function")}(this,e),-1!==t.search(/^[0-9]{11}$/)&&(t+=u(t));var r=function(t,e){if(!t)throw new ReferenceError("this hasn't been initialised - super() hasn't been called");return!e||"object"!=typeof e&&"function"!=typeof e?t:e}(this,(e.__proto__||Object.getPrototypeOf(e)).call(this,t,n));return r.displayValue=n.displayValue,n.fontSize>10*n.width?r.fontSize=10*n.width:r.fontSize=n.fontSize,r.guardHeight=n.height+r.fontSize/2+n.textMargin,r}return function(t,e){if("function"!=typeof e&&null!==e)throw new TypeError("Super expression must either be null or a function, not "+typeof e);t.prototype=Object.create(e&&e.prototype,{constructor:{value:t,enumerable:!1,writable:!0,configurable:!0}}),e&&(Object.setPrototypeOf?Object.setPrototypeOf(t,e):t.__proto__=e)}(e,t),r(e,[{key:"valid",value:function(){return-1!==this.data.search(/^[0-9]{12}$/)&&this.data[11]==u(this.data)}},{key:"encode",value:function(){return this.options.flat?this.flatEncoding():this.guardedEncoding()}},{key:"flatEncoding",value:function(){var t="";return t+="101",t+=(0,o.default)(this.data.substr(0,6),"LLLLLL"),t+="01010",t+=(0,o.default)(this.data.substr(6,6),"RRRRRR"),{data:t+="101",text:this.text}}},{key:"guardedEncoding",value:function(){var t=[];return this.displayValue&&t.push({data:"00000000",text:this.text.substr(0,1),options:{textAlign:"left",fontSize:this.fontSize}}),t.push({data:"101"+(0,o.default)(this.data[0],"L"),options:{height:this.guardHeight}}),t.push({data:(0,o.default)(this.data.substr(1,5),"LLLLL"),text:this.text.substr(1,5),options:{fontSize:this.fontSize}}),t.push({data:"01010",options:{height:this.guardHeight}}),t.push({data:(0,o.default)(this.data.substr(6,5),"RRRRR"),text:this.text.substr(6,5),options:{fontSize:this.fontSize}}),t.push({data:(0,o.default)(this.data[11],"R")+"101",options:{height:this.guardHeight}}),this.displayValue&&t.push({data:"00000000",text:this.text.substr(11,1),options:{textAlign:"right",fontSize:this.fontSize}}),t}}]),e}(i(n(0)).default);function u(t){var e,n=0;for(e=1;e<11;e+=2)n+=parseInt(t[e]);for(e=0;e<11;e+=2)n+=3*parseInt(t[e]);return(10-n%10)%10}e.default=a},function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var r,o=function(){function t(t,e){for(var n=0;n<e.length;n++){var r=e[n];r.enumerable=r.enumerable||!1,r.configurable=!0,"value"in r&&(r.writable=!0),Object.defineProperty(t,r.key,r)}}return function(e,n,r){return n&&t(e.prototype,n),r&&t(e,r),e}}(),i=n(32),a=n(0);function u(t,e){if(!(t instanceof e))throw new TypeError("Cannot call a class as a function")}function f(t,e){if(!t)throw new ReferenceError("this hasn't been initialised - super() hasn't been called");return!e||"object"!=typeof e&&"function"!=typeof e?t:e}var c=function(t){function e(){return u(this,e),f(this,(e.__proto__||Object.getPrototypeOf(e)).apply(this,arguments))}return function(t,e){if("function"!=typeof e&&null!==e)throw new TypeError("Super expression must either be null or a function, not "+typeof e);t.prototype=Object.create(e&&e.prototype,{constructor:{value:t,enumerable:!1,writable:!0,configurable:!0}}),e&&(Object.setPrototypeOf?Object.setPrototypeOf(t,e):t.__proto__=e)}(e,t),o(e,[{key:"valid",value:function(){return-1!==this.data.search(/^([0-9]{2})+$/)}},{key:"encode",value:function(){var t=this,e=this.data.match(/.{2}/g).map((function(e){return t.encodePair(e)})).join("");return{data:i.START_BIN+e+i.END_BIN,text:this.text}}},{key:"encodePair",value:function(t){var e=i.BINARIES[t[1]];return i.BINARIES[t[0]].split("").map((function(t,n){return("1"===t?"111":"1")+("1"===e[n]?"000":"0")})).join("")}}]),e}(((r=a)&&r.__esModule?r:{default:r}).default);e.default=c},function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var r,o=function(){function t(t,e){for(var n=0;n<e.length;n++){var r=e[n];r.enumerable=r.enumerable||!1,r.configurable=!0,"value"in r&&(r.writable=!0),Object.defineProperty(t,r.key,r)}}return function(e,n,r){return n&&t(e.prototype,n),r&&t(e,r),e}}(),i=n(42),a=n(0);var u=function(t){function e(t,n){return function(t,e){if(!(t instanceof e))throw new TypeError("Cannot call a class as a function")}(this,e),function(t,e){if(!t)throw new ReferenceError("this hasn't been initialised - super() hasn't been called");return!e||"object"!=typeof e&&"function"!=typeof e?t:e}(this,(e.__proto__||Object.getPrototypeOf(e)).call(this,t,n))}return function(t,e){if("function"!=typeof e&&null!==e)throw new TypeError("Super expression must either be null or a function, not "+typeof e);t.prototype=Object.create(e&&e.prototype,{constructor:{value:t,enumerable:!1,writable:!0,configurable:!0}}),e&&(Object.setPrototypeOf?Object.setPrototypeOf(t,e):t.__proto__=e)}(e,t),o(e,[{key:"valid",value:function(){return/^[0-9A-Z\-. $/+%]+$/.test(this.data)}},{key:"encode",value:function(){var t=this.data.split("").flatMap((function(t){return i.MULTI_SYMBOLS[t]||t})),n=t.map((function(t){return e.getEncoding(t)})).join(""),r=e.checksum(t,20),o=e.checksum(t.concat(r),15);return{text:this.text,data:e.getEncoding("ÿ")+n+e.getEncoding(r)+e.getEncoding(o)+e.getEncoding("ÿ")+"1"}}}],[{key:"getEncoding",value:function(t){return i.BINARIES[e.symbolValue(t)]}},{key:"getSymbol",value:function(t){return i.SYMBOLS[t]}},{key:"symbolValue",value:function(t){return i.SYMBOLS.indexOf(t)}},{key:"checksum",value:function(t,n){var r=t.slice().reverse().reduce((function(t,r,o){var i=o%n+1;return t+e.symbolValue(r)*i}),0);return e.getSymbol(r%47)}}]),e}(((r=a)&&r.__esModule?r:{default:r}).default);e.default=u},function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0}),e.default=function(t){var e=["width","height","textMargin","fontSize","margin","marginTop","marginBottom","marginLeft","marginRight"];for(var n in e)e.hasOwnProperty(n)&&(n=e[n],"string"==typeof t[n]&&(t[n]=parseInt(t[n],10)));"string"==typeof t.displayValue&&(t.displayValue="false"!=t.displayValue);return t}},function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var r={width:2,height:100,format:"auto",displayValue:!0,fontOptions:"",font:"monospace",text:void 0,textAlign:"center",textPosition:"bottom",textMargin:2,fontSize:20,background:"#ffffff",lineColor:"#000000",margin:10,marginTop:void 0,marginBottom:void 0,marginLeft:void 0,marginRight:void 0,valid:function(){}};e.default=r},function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0}),e.getTotalWidthOfEncodings=e.calculateEncodingAttributes=e.getBarcodePadding=e.getEncodingHeight=e.getMaximumHeightOfEncodings=void 0;var r,o=n(7),i=(r=o)&&r.__esModule?r:{default:r};function a(t,e){return e.height+(e.displayValue&&t.text.length>0?e.fontSize+e.textMargin:0)+e.marginTop+e.marginBottom}function u(t,e,n){if(n.displayValue&&e<t){if("center"==n.textAlign)return Math.floor((t-e)/2);if("left"==n.textAlign)return 0;if("right"==n.textAlign)return Math.floor(t-e)}return 0}function f(t,e,n){var r;if(n)r=n;else{if("undefined"==typeof document)return 0;r=document.createElement("canvas").getContext("2d")}r.font=e.fontOptions+" "+e.fontSize+"px "+e.font;var o=r.measureText(t);return o?o.width:0}e.getMaximumHeightOfEncodings=function(t){for(var e=0,n=0;n<t.length;n++)t[n].height>e&&(e=t[n].height);return e},e.getEncodingHeight=a,e.getBarcodePadding=u,e.calculateEncodingAttributes=function(t,e,n){for(var r=0;r<t.length;r++){var o,c=t[r],s=(0,i.default)(e,c.options);o=s.displayValue?f(c.text,s,n):0;var l=c.data.length*s.width;c.width=Math.ceil(Math.max(o,l)),c.height=a(c,s),c.barcodePadding=u(o,l,s)}},e.getTotalWidthOfEncodings=function(t){for(var e=0,n=0;n<t.length;n++)e+=t[n].width;return e}},function(t,e,n){"use strict";function r(t,e){if(!(t instanceof e))throw new TypeError("Cannot call a class as a function")}function o(t,e){if(!t)throw new ReferenceError("this hasn't been initialised - super() hasn't been called");return!e||"object"!=typeof e&&"function"!=typeof e?t:e}function i(t,e){if("function"!=typeof e&&null!==e)throw new TypeError("Super expression must either be null or a function, not "+typeof e);t.prototype=Object.create(e&&e.prototype,{constructor:{value:t,enumerable:!1,writable:!0,configurable:!0}}),e&&(Object.setPrototypeOf?Object.setPrototypeOf(t,e):t.__proto__=e)}Object.defineProperty(e,"__esModule",{value:!0});var a=function(t){function e(t,n){r(this,e);var i=o(this,(e.__proto__||Object.getPrototypeOf(e)).call(this));return i.name="InvalidInputException",i.symbology=t,i.input=n,i.message='"'+i.input+'" is not a valid input for '+i.symbology,i}return i(e,Error),e}(),u=function(t){function e(){r(this,e);var t=o(this,(e.__proto__||Object.getPrototypeOf(e)).call(this));return t.name="InvalidElementException",t.message="Not supported type to render on",t}return i(e,Error),e}(),f=function(t){function e(){r(this,e);var t=o(this,(e.__proto__||Object.getPrototypeOf(e)).call(this));return t.name="NoElementException",t.message="No element to render on.",t}return i(e,Error),e}();e.InvalidInputException=a,e.InvalidElementException=u,e.NoElementException=f},function(t,e,n){"use strict";var r=p(n(17)),o=p(n(7)),i=p(n(45)),a=p(n(46)),u=p(n(47)),f=p(n(12)),c=p(n(53)),s=n(15),l=p(n(13));function p(t){return t&&t.__esModule?t:{default:t}}var d=function(){},h=function(t,e,n){var r=new d;if(void 0===t)throw Error("No element to render on was provided.");return r._renderProperties=(0,u.default)(t),r._encodings=[],r._options=l.default,r._errorHandler=new c.default(r),void 0!==e&&((n=n||{}).format||(n.format=_()),r.options(n)[n.format](e,n).render()),r};for(var y in h.getModule=function(t){return r.default[t]},r.default)r.default.hasOwnProperty(y)&&b(r.default,y);function b(t,e){d.prototype[e]=d.prototype[e.toUpperCase()]=d.prototype[e.toLowerCase()]=function(n,r){var i=this;return i._errorHandler.wrapBarcodeCall((function(){r.text=void 0===r.text?void 0:""+r.text;var a=(0,o.default)(i._options,r);a=(0,f.default)(a);var u=t[e],c=v(n,u,a);return i._encodings.push(c),i}))}}function v(t,e,n){var r=new e(t=""+t,n);if(!r.valid())throw new s.InvalidInputException(r.constructor.name,t);var a=r.encode();a=(0,i.default)(a);for(var u=0;u<a.length;u++)a[u].options=(0,o.default)(n,a[u].options);return a}function _(){return r.default.CODE128?"CODE128":Object.keys(r.default)[0]}function g(t,e,n){e=(0,i.default)(e);for(var r=0;r<e.length;r++)e[r].options=(0,o.default)(n,e[r].options),(0,a.default)(e[r].options);(0,a.default)(n),new(0,t.renderer)(t.element,e,n).render(),t.afterRender&&t.afterRender()}d.prototype.options=function(t){return this._options=(0,o.default)(this._options,t),this},d.prototype.blank=function(t){var e=new Array(t+1).join("0");return this._encodings.push({data:e}),this},d.prototype.init=function(){var t;if(this._renderProperties)for(var e in Array.isArray(this._renderProperties)||(this._renderProperties=[this._renderProperties]),this._renderProperties){t=this._renderProperties[e];var n=(0,o.default)(this._options,t.options);"auto"==n.format&&(n.format=_()),this._errorHandler.wrapBarcodeCall((function(){var e=v(n.value,r.default[n.format.toUpperCase()],n);g(t,e,n)}))}},d.prototype.render=function(){if(!this._renderProperties)throw new s.NoElementException;if(Array.isArray(this._renderProperties))for(var t=0;t<this._renderProperties.length;t++)g(this._renderProperties[t],this._encodings,this._options);else g(this._renderProperties,this._encodings,this._options);return this},d.prototype._defaults=l.default,"undefined"!=typeof window&&(window.JsBarcode=h),"undefined"!=typeof jQuery&&(jQuery.fn.JsBarcode=function(t,e){var n=[];return jQuery(this).each((function(){n.push(this)})),h(n,t,e)}),t.exports=h},function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var r=n(18),o=n(19),i=n(25),a=n(31),u=n(34),f=n(39),c=n(40),s=n(41),l=n(44);e.default={CODE39:r.CODE39,CODE128:o.CODE128,CODE128A:o.CODE128A,CODE128B:o.CODE128B,CODE128C:o.CODE128C,EAN13:i.EAN13,EAN8:i.EAN8,EAN5:i.EAN5,EAN2:i.EAN2,UPC:i.UPC,UPCE:i.UPCE,ITF14:a.ITF14,ITF:a.ITF,MSI:u.MSI,MSI10:u.MSI10,MSI11:u.MSI11,MSI1010:u.MSI1010,MSI1110:u.MSI1110,pharmacode:f.pharmacode,codabar:c.codabar,CODE93:s.CODE93,CODE93FullASCII:s.CODE93FullASCII,GenericBarcode:l.GenericBarcode}},function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0}),e.CODE39=void 0;var r,o=function(){function t(t,e){for(var n=0;n<e.length;n++){var r=e[n];r.enumerable=r.enumerable||!1,r.configurable=!0,"value"in r&&(r.writable=!0),Object.defineProperty(t,r.key,r)}}return function(e,n,r){return n&&t(e.prototype,n),r&&t(e,r),e}}(),i=n(0);var a=function(t){function e(t,n){return function(t,e){if(!(t instanceof e))throw new TypeError("Cannot call a class as a function")}(this,e),t=t.toUpperCase(),n.mod43&&(t+=function(t){return u[t]}(function(t){for(var e=0,n=0;n<t.length;n++)e+=s(t[n]);return e%=43}(t))),function(t,e){if(!t)throw new ReferenceError("this hasn't been initialised - super() hasn't been called");return!e||"object"!=typeof e&&"function"!=typeof e?t:e}(this,(e.__proto__||Object.getPrototypeOf(e)).call(this,t,n))}return function(t,e){if("function"!=typeof e&&null!==e)throw new TypeError("Super expression must either be null or a function, not "+typeof e);t.prototype=Object.create(e&&e.prototype,{constructor:{value:t,enumerable:!1,writable:!0,configurable:!0}}),e&&(Object.setPrototypeOf?Object.setPrototypeOf(t,e):t.__proto__=e)}(e,t),o(e,[{key:"encode",value:function(){for(var t=c("*"),e=0;e<this.data.length;e++)t+=c(this.data[e])+"0";return{data:t+=c("*"),text:this.text}}},{key:"valid",value:function(){return-1!==this.data.search(/^[0-9A-Z\-\.\ \$\/\+\%]+$/)}}]),e}(((r=i)&&r.__esModule?r:{default:r}).default),u=["0","1","2","3","4","5","6","7","8","9","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","-","."," ","$","/","+","%","*"],f=[20957,29783,23639,30485,20951,29813,23669,20855,29789,23645,29975,23831,30533,22295,30149,24005,21623,29981,23837,22301,30023,23879,30545,22343,30161,24017,21959,30065,23921,22385,29015,18263,29141,17879,29045,18293,17783,29021,18269,17477,17489,17681,20753,35770];function c(t){return function(t){return f[t].toString(2)}(s(t))}function s(t){return u.indexOf(t)}e.CODE39=a},function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0}),e.CODE128C=e.CODE128B=e.CODE128A=e.CODE128=void 0;var r=u(n(20)),o=u(n(22)),i=u(n(23)),a=u(n(24));function u(t){return t&&t.__esModule?t:{default:t}}e.CODE128=r.default,e.CODE128A=o.default,e.CODE128B=i.default,e.CODE128C=a.default},function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var r=i(n(5)),o=i(n(21));function i(t){return t&&t.__esModule?t:{default:t}}function a(t,e){if(!t)throw new ReferenceError("this hasn't been initialised - super() hasn't been called");return!e||"object"!=typeof e&&"function"!=typeof e?t:e}var u=function(t){function e(t,n){if(function(t,e){if(!(t instanceof e))throw new TypeError("Cannot call a class as a function")}(this,e),/^[\x00-\x7F\xC8-\xD3]+$/.test(t))var r=a(this,(e.__proto__||Object.getPrototypeOf(e)).call(this,(0,o.default)(t),n));else r=a(this,(e.__proto__||Object.getPrototypeOf(e)).call(this,t,n));return a(r)}return function(t,e){if("function"!=typeof e&&null!==e)throw new TypeError("Super expression must either be null or a function, not "+typeof e);t.prototype=Object.create(e&&e.prototype,{constructor:{value:t,enumerable:!1,writable:!0,configurable:!0}}),e&&(Object.setPrototypeOf?Object.setPrototypeOf(t,e):t.__proto__=e)}(e,t),e}(r.default);e.default=u},function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var r=n(1),o=function(t){return t.match(new RegExp("^"+r.A_CHARS+"*"))[0].length},i=function(t){return t.match(new RegExp("^"+r.B_CHARS+"*"))[0].length},a=function(t){return t.match(new RegExp("^"+r.C_CHARS+"*"))[0]};function u(t,e){var n=e?r.A_CHARS:r.B_CHARS,o=t.match(new RegExp("^("+n+"+?)(([0-9]{2}){2,})([^0-9]|$)"));if(o)return o[1]+String.fromCharCode(204)+f(t.substring(o[1].length));var i=t.match(new RegExp("^"+n+"+"))[0];return i.length===t.length?t:i+String.fromCharCode(e?205:206)+u(t.substring(i.length),!e)}function f(t){var e=a(t),n=e.length;if(n===t.length)return t;t=t.substring(n);var r=o(t)>=i(t);return e+String.fromCharCode(r?206:205)+u(t,r)}e.default=function(t){var e=void 0;if(a(t).length>=2)e=r.C_START_CHAR+f(t);else{var n=o(t)>i(t);e=(n?r.A_START_CHAR:r.B_START_CHAR)+u(t,n)}return e.replace(/[\xCD\xCE]([^])[\xCD\xCE]/,(function(t,e){return String.fromCharCode(203)+e}))}},function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var r,o=function(){function t(t,e){for(var n=0;n<e.length;n++){var r=e[n];r.enumerable=r.enumerable||!1,r.configurable=!0,"value"in r&&(r.writable=!0),Object.defineProperty(t,r.key,r)}}return function(e,n,r){return n&&t(e.prototype,n),r&&t(e,r),e}}(),i=n(5),a=(r=i)&&r.__esModule?r:{default:r},u=n(1);var f=function(t){function e(t,n){return function(t,e){if(!(t instanceof e))throw new TypeError("Cannot call a class as a function")}(this,e),function(t,e){if(!t)throw new ReferenceError("this hasn't been initialised - super() hasn't been called");return!e||"object"!=typeof e&&"function"!=typeof e?t:e}(this,(e.__proto__||Object.getPrototypeOf(e)).call(this,u.A_START_CHAR+t,n))}return function(t,e){if("function"!=typeof e&&null!==e)throw new TypeError("Super expression must either be null or a function, not "+typeof e);t.prototype=Object.create(e&&e.prototype,{constructor:{value:t,enumerable:!1,writable:!0,configurable:!0}}),e&&(Object.setPrototypeOf?Object.setPrototypeOf(t,e):t.__proto__=e)}(e,t),o(e,[{key:"valid",value:function(){return new RegExp("^"+u.A_CHARS+"+$").test(this.data)}}]),e}(a.default);e.default=f},function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var r,o=function(){function t(t,e){for(var n=0;n<e.length;n++){var r=e[n];r.enumerable=r.enumerable||!1,r.configurable=!0,"value"in r&&(r.writable=!0),Object.defineProperty(t,r.key,r)}}return function(e,n,r){return n&&t(e.prototype,n),r&&t(e,r),e}}(),i=n(5),a=(r=i)&&r.__esModule?r:{default:r},u=n(1);var f=function(t){function e(t,n){return function(t,e){if(!(t instanceof e))throw new TypeError("Cannot call a class as a function")}(this,e),function(t,e){if(!t)throw new ReferenceError("this hasn't been initialised - super() hasn't been called");return!e||"object"!=typeof e&&"function"!=typeof e?t:e}(this,(e.__proto__||Object.getPrototypeOf(e)).call(this,u.B_START_CHAR+t,n))}return function(t,e){if("function"!=typeof e&&null!==e)throw new TypeError("Super expression must either be null or a function, not "+typeof e);t.prototype=Object.create(e&&e.prototype,{constructor:{value:t,enumerable:!1,writable:!0,configurable:!0}}),e&&(Object.setPrototypeOf?Object.setPrototypeOf(t,e):t.__proto__=e)}(e,t),o(e,[{key:"valid",value:function(){return new RegExp("^"+u.B_CHARS+"+$").test(this.data)}}]),e}(a.default);e.default=f},function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var r,o=function(){function t(t,e){for(var n=0;n<e.length;n++){var r=e[n];r.enumerable=r.enumerable||!1,r.configurable=!0,"value"in r&&(r.writable=!0),Object.defineProperty(t,r.key,r)}}return function(e,n,r){return n&&t(e.prototype,n),r&&t(e,r),e}}(),i=n(5),a=(r=i)&&r.__esModule?r:{default:r},u=n(1);var f=function(t){function e(t,n){return function(t,e){if(!(t instanceof e))throw new TypeError("Cannot call a class as a function")}(this,e),function(t,e){if(!t)throw new ReferenceError("this hasn't been initialised - super() hasn't been called");return!e||"object"!=typeof e&&"function"!=typeof e?t:e}(this,(e.__proto__||Object.getPrototypeOf(e)).call(this,u.C_START_CHAR+t,n))}return function(t,e){if("function"!=typeof e&&null!==e)throw new TypeError("Super expression must either be null or a function, not "+typeof e);t.prototype=Object.create(e&&e.prototype,{constructor:{value:t,enumerable:!1,writable:!0,configurable:!0}}),e&&(Object.setPrototypeOf?Object.setPrototypeOf(t,e):t.__proto__=e)}(e,t),o(e,[{key:"valid",value:function(){return new RegExp("^"+u.C_CHARS+"+$").test(this.data)}}]),e}(a.default);e.default=f},function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0}),e.UPCE=e.UPC=e.EAN2=e.EAN5=e.EAN8=e.EAN13=void 0;var r=c(n(26)),o=c(n(27)),i=c(n(28)),a=c(n(29)),u=c(n(9)),f=c(n(30));function c(t){return t&&t.__esModule?t:{default:t}}e.EAN13=r.default,e.EAN8=o.default,e.EAN5=i.default,e.EAN2=a.default,e.UPC=u.default,e.UPCE=f.default},function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var r,o=function(){function t(t,e){for(var n=0;n<e.length;n++){var r=e[n];r.enumerable=r.enumerable||!1,r.configurable=!0,"value"in r&&(r.writable=!0),Object.defineProperty(t,r.key,r)}}return function(e,n,r){return n&&t(e.prototype,n),r&&t(e,r),e}}(),i=function t(e,n,r){null===e&&(e=Function.prototype);var o=Object.getOwnPropertyDescriptor(e,n);if(void 0===o){var i=Object.getPrototypeOf(e);return null===i?void 0:t(i,n,r)}if("value"in o)return o.value;var a=o.get;return void 0!==a?a.call(r):void 0},a=n(2),u=n(8),f=(r=u)&&r.__esModule?r:{default:r};var c=function(t){return(10-t.substr(0,12).split("").map((function(t){return+t})).reduce((function(t,e,n){return n%2?t+3*e:t+e}),0)%10)%10},s=function(t){function e(t,n){!function(t,e){if(!(t instanceof e))throw new TypeError("Cannot call a class as a function")}(this,e),-1!==t.search(/^[0-9]{12}$/)&&(t+=c(t));var r=function(t,e){if(!t)throw new ReferenceError("this hasn't been initialised - super() hasn't been called");return!e||"object"!=typeof e&&"function"!=typeof e?t:e}(this,(e.__proto__||Object.getPrototypeOf(e)).call(this,t,n));return r.lastChar=n.lastChar,r}return function(t,e){if("function"!=typeof e&&null!==e)throw new TypeError("Super expression must either be null or a function, not "+typeof e);t.prototype=Object.create(e&&e.prototype,{constructor:{value:t,enumerable:!1,writable:!0,configurable:!0}}),e&&(Object.setPrototypeOf?Object.setPrototypeOf(t,e):t.__proto__=e)}(e,t),o(e,[{key:"valid",value:function(){return-1!==this.data.search(/^[0-9]{13}$/)&&+this.data[12]===c(this.data)}},{key:"leftText",value:function(){return i(e.prototype.__proto__||Object.getPrototypeOf(e.prototype),"leftText",this).call(this,1,6)}},{key:"leftEncode",value:function(){var t=this.data.substr(1,6),n=a.EAN13_STRUCTURE[this.data[0]];return i(e.prototype.__proto__||Object.getPrototypeOf(e.prototype),"leftEncode",this).call(this,t,n)}},{key:"rightText",value:function(){return i(e.prototype.__proto__||Object.getPrototypeOf(e.prototype),"rightText",this).call(this,7,6)}},{key:"rightEncode",value:function(){var t=this.data.substr(7,6);return i(e.prototype.__proto__||Object.getPrototypeOf(e.prototype),"rightEncode",this).call(this,t,"RRRRRR")}},{key:"encodeGuarded",value:function(){var t=i(e.prototype.__proto__||Object.getPrototypeOf(e.prototype),"encodeGuarded",this).call(this);return this.options.displayValue&&(t.unshift({data:"000000000000",text:this.text.substr(0,1),options:{textAlign:"left",fontSize:this.fontSize}}),this.options.lastChar&&(t.push({data:"00"}),t.push({data:"00000",text:this.options.lastChar,options:{fontSize:this.fontSize}}))),t}}]),e}(f.default);e.default=s},function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var r,o=function(){function t(t,e){for(var n=0;n<e.length;n++){var r=e[n];r.enumerable=r.enumerable||!1,r.configurable=!0,"value"in r&&(r.writable=!0),Object.defineProperty(t,r.key,r)}}return function(e,n,r){return n&&t(e.prototype,n),r&&t(e,r),e}}(),i=function t(e,n,r){null===e&&(e=Function.prototype);var o=Object.getOwnPropertyDescriptor(e,n);if(void 0===o){var i=Object.getPrototypeOf(e);return null===i?void 0:t(i,n,r)}if("value"in o)return o.value;var a=o.get;return void 0!==a?a.call(r):void 0},a=n(8),u=(r=a)&&r.__esModule?r:{default:r};var f=function(t){return(10-t.substr(0,7).split("").map((function(t){return+t})).reduce((function(t,e,n){return n%2?t+e:t+3*e}),0)%10)%10},c=function(t){function e(t,n){return function(t,e){if(!(t instanceof e))throw new TypeError("Cannot call a class as a function")}(this,e),-1!==t.search(/^[0-9]{7}$/)&&(t+=f(t)),function(t,e){if(!t)throw new ReferenceError("this hasn't been initialised - super() hasn't been called");return!e||"object"!=typeof e&&"function"!=typeof e?t:e}(this,(e.__proto__||Object.getPrototypeOf(e)).call(this,t,n))}return function(t,e){if("function"!=typeof e&&null!==e)throw new TypeError("Super expression must either be null or a function, not "+typeof e);t.prototype=Object.create(e&&e.prototype,{constructor:{value:t,enumerable:!1,writable:!0,configurable:!0}}),e&&(Object.setPrototypeOf?Object.setPrototypeOf(t,e):t.__proto__=e)}(e,t),o(e,[{key:"valid",value:function(){return-1!==this.data.search(/^[0-9]{8}$/)&&+this.data[7]===f(this.data)}},{key:"leftText",value:function(){return i(e.prototype.__proto__||Object.getPrototypeOf(e.prototype),"leftText",this).call(this,0,4)}},{key:"leftEncode",value:function(){var t=this.data.substr(0,4);return i(e.prototype.__proto__||Object.getPrototypeOf(e.prototype),"leftEncode",this).call(this,t,"LLLL")}},{key:"rightText",value:function(){return i(e.prototype.__proto__||Object.getPrototypeOf(e.prototype),"rightText",this).call(this,4,4)}},{key:"rightEncode",value:function(){var t=this.data.substr(4,4);return i(e.prototype.__proto__||Object.getPrototypeOf(e.prototype),"rightEncode",this).call(this,t,"RRRR")}}]),e}(u.default);e.default=c},function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var r=function(){function t(t,e){for(var n=0;n<e.length;n++){var r=e[n];r.enumerable=r.enumerable||!1,r.configurable=!0,"value"in r&&(r.writable=!0),Object.defineProperty(t,r.key,r)}}return function(e,n,r){return n&&t(e.prototype,n),r&&t(e,r),e}}(),o=n(2),i=u(n(3)),a=u(n(0));function u(t){return t&&t.__esModule?t:{default:t}}var f=function(t){function e(t,n){return function(t,e){if(!(t instanceof e))throw new TypeError("Cannot call a class as a function")}(this,e),function(t,e){if(!t)throw new ReferenceError("this hasn't been initialised - super() hasn't been called");return!e||"object"!=typeof e&&"function"!=typeof e?t:e}(this,(e.__proto__||Object.getPrototypeOf(e)).call(this,t,n))}return function(t,e){if("function"!=typeof e&&null!==e)throw new TypeError("Super expression must either be null or a function, not "+typeof e);t.prototype=Object.create(e&&e.prototype,{constructor:{value:t,enumerable:!1,writable:!0,configurable:!0}}),e&&(Object.setPrototypeOf?Object.setPrototypeOf(t,e):t.__proto__=e)}(e,t),r(e,[{key:"valid",value:function(){return-1!==this.data.search(/^[0-9]{5}$/)}},{key:"encode",value:function(){var t,e=o.EAN5_STRUCTURE[(t=this.data,t.split("").map((function(t){return+t})).reduce((function(t,e,n){return n%2?t+9*e:t+3*e}),0)%10)];return{data:"1011"+(0,i.default)(this.data,e,"01"),text:this.text}}}]),e}(a.default);e.default=f},function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var r=function(){function t(t,e){for(var n=0;n<e.length;n++){var r=e[n];r.enumerable=r.enumerable||!1,r.configurable=!0,"value"in r&&(r.writable=!0),Object.defineProperty(t,r.key,r)}}return function(e,n,r){return n&&t(e.prototype,n),r&&t(e,r),e}}(),o=n(2),i=a(n(3));function a(t){return t&&t.__esModule?t:{default:t}}var u=function(t){function e(t,n){return function(t,e){if(!(t instanceof e))throw new TypeError("Cannot call a class as a function")}(this,e),function(t,e){if(!t)throw new ReferenceError("this hasn't been initialised - super() hasn't been called");return!e||"object"!=typeof e&&"function"!=typeof e?t:e}(this,(e.__proto__||Object.getPrototypeOf(e)).call(this,t,n))}return function(t,e){if("function"!=typeof e&&null!==e)throw new TypeError("Super expression must either be null or a function, not "+typeof e);t.prototype=Object.create(e&&e.prototype,{constructor:{value:t,enumerable:!1,writable:!0,configurable:!0}}),e&&(Object.setPrototypeOf?Object.setPrototypeOf(t,e):t.__proto__=e)}(e,t),r(e,[{key:"valid",value:function(){return-1!==this.data.search(/^[0-9]{2}$/)}},{key:"encode",value:function(){var t=o.EAN2_STRUCTURE[parseInt(this.data)%4];return{data:"1011"+(0,i.default)(this.data,t,"01"),text:this.text}}}]),e}(a(n(0)).default);e.default=u},function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var r=function(){function t(t,e){for(var n=0;n<e.length;n++){var r=e[n];r.enumerable=r.enumerable||!1,r.configurable=!0,"value"in r&&(r.writable=!0),Object.defineProperty(t,r.key,r)}}return function(e,n,r){return n&&t(e.prototype,n),r&&t(e,r),e}}(),o=u(n(3)),i=u(n(0)),a=n(9);function u(t){return t&&t.__esModule?t:{default:t}}function f(t,e){if(!t)throw new ReferenceError("this hasn't been initialised - super() hasn't been called");return!e||"object"!=typeof e&&"function"!=typeof e?t:e}var c=["XX00000XXX","XX10000XXX","XX20000XXX","XXX00000XX","XXXX00000X","XXXXX00005","XXXXX00006","XXXXX00007","XXXXX00008","XXXXX00009"],s=[["EEEOOO","OOOEEE"],["EEOEOO","OOEOEE"],["EEOOEO","OOEEOE"],["EEOOOE","OOEEEO"],["EOEEOO","OEOOEE"],["EOOEEO","OEEOOE"],["EOOOEE","OEEEOO"],["EOEOEO","OEOEOE"],["EOEOOE","OEOEEO"],["EOOEOE","OEEOEO"]],l=function(t){function e(t,n){!function(t,e){if(!(t instanceof e))throw new TypeError("Cannot call a class as a function")}(this,e);var r=f(this,(e.__proto__||Object.getPrototypeOf(e)).call(this,t,n));if(r.isValid=!1,-1!==t.search(/^[0-9]{6}$/))r.middleDigits=t,r.upcA=p(t,"0"),r.text=n.text||""+r.upcA[0]+t+r.upcA[r.upcA.length-1],r.isValid=!0;else{if(-1===t.search(/^[01][0-9]{7}$/))return f(r);if(r.middleDigits=t.substring(1,t.length-1),r.upcA=p(r.middleDigits,t[0]),r.upcA[r.upcA.length-1]!==t[t.length-1])return f(r);r.isValid=!0}return r.displayValue=n.displayValue,n.fontSize>10*n.width?r.fontSize=10*n.width:r.fontSize=n.fontSize,r.guardHeight=n.height+r.fontSize/2+n.textMargin,r}return function(t,e){if("function"!=typeof e&&null!==e)throw new TypeError("Super expression must either be null or a function, not "+typeof e);t.prototype=Object.create(e&&e.prototype,{constructor:{value:t,enumerable:!1,writable:!0,configurable:!0}}),e&&(Object.setPrototypeOf?Object.setPrototypeOf(t,e):t.__proto__=e)}(e,t),r(e,[{key:"valid",value:function(){return this.isValid}},{key:"encode",value:function(){return this.options.flat?this.flatEncoding():this.guardedEncoding()}},{key:"flatEncoding",value:function(){var t="";return t+="101",t+=this.encodeMiddleDigits(),{data:t+="010101",text:this.text}}},{key:"guardedEncoding",value:function(){var t=[];return this.displayValue&&t.push({data:"00000000",text:this.text[0],options:{textAlign:"left",fontSize:this.fontSize}}),t.push({data:"101",options:{height:this.guardHeight}}),t.push({data:this.encodeMiddleDigits(),text:this.text.substring(1,7),options:{fontSize:this.fontSize}}),t.push({data:"010101",options:{height:this.guardHeight}}),this.displayValue&&t.push({data:"00000000",text:this.text[7],options:{textAlign:"right",fontSize:this.fontSize}}),t}},{key:"encodeMiddleDigits",value:function(){var t=this.upcA[0],e=this.upcA[this.upcA.length-1],n=s[parseInt(e)][parseInt(t)];return(0,o.default)(this.middleDigits,n)}}]),e}(i.default);function p(t,e){for(var n=parseInt(t[t.length-1]),r=c[n],o="",i=0,u=0;u<r.length;u++){var f=r[u];o+="X"===f?t[i++]:f}return""+(o=""+e+o)+(0,a.checksum)(o)}e.default=l},function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0}),e.ITF14=e.ITF=void 0;var r=i(n(10)),o=i(n(33));function i(t){return t&&t.__esModule?t:{default:t}}e.ITF=r.default,e.ITF14=o.default},function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0});e.START_BIN="1010",e.END_BIN="11101",e.BINARIES=["00110","10001","01001","11000","00101","10100","01100","00011","10010","01010"]},function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var r,o=function(){function t(t,e){for(var n=0;n<e.length;n++){var r=e[n];r.enumerable=r.enumerable||!1,r.configurable=!0,"value"in r&&(r.writable=!0),Object.defineProperty(t,r.key,r)}}return function(e,n,r){return n&&t(e.prototype,n),r&&t(e,r),e}}(),i=n(10),a=(r=i)&&r.__esModule?r:{default:r};var u=function(t){var e=t.substr(0,13).split("").map((function(t){return parseInt(t,10)})).reduce((function(t,e,n){return t+e*(3-n%2*2)}),0);return 10*Math.ceil(e/10)-e},f=function(t){function e(t,n){return function(t,e){if(!(t instanceof e))throw new TypeError("Cannot call a class as a function")}(this,e),-1!==t.search(/^[0-9]{13}$/)&&(t+=u(t)),function(t,e){if(!t)throw new ReferenceError("this hasn't been initialised - super() hasn't been called");return!e||"object"!=typeof e&&"function"!=typeof e?t:e}(this,(e.__proto__||Object.getPrototypeOf(e)).call(this,t,n))}return function(t,e){if("function"!=typeof e&&null!==e)throw new TypeError("Super expression must either be null or a function, not "+typeof e);t.prototype=Object.create(e&&e.prototype,{constructor:{value:t,enumerable:!1,writable:!0,configurable:!0}}),e&&(Object.setPrototypeOf?Object.setPrototypeOf(t,e):t.__proto__=e)}(e,t),o(e,[{key:"valid",value:function(){return-1!==this.data.search(/^[0-9]{14}$/)&&+this.data[13]===u(this.data)}}]),e}(a.default);e.default=f},function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0}),e.MSI1110=e.MSI1010=e.MSI11=e.MSI10=e.MSI=void 0;var r=f(n(4)),o=f(n(35)),i=f(n(36)),a=f(n(37)),u=f(n(38));function f(t){return t&&t.__esModule?t:{default:t}}e.MSI=r.default,e.MSI10=o.default,e.MSI11=i.default,e.MSI1010=a.default,e.MSI1110=u.default},function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var r,o=n(4),i=(r=o)&&r.__esModule?r:{default:r},a=n(6);var u=function(t){function e(t,n){return function(t,e){if(!(t instanceof e))throw new TypeError("Cannot call a class as a function")}(this,e),function(t,e){if(!t)throw new ReferenceError("this hasn't been initialised - super() hasn't been called");return!e||"object"!=typeof e&&"function"!=typeof e?t:e}(this,(e.__proto__||Object.getPrototypeOf(e)).call(this,t+(0,a.mod10)(t),n))}return function(t,e){if("function"!=typeof e&&null!==e)throw new TypeError("Super expression must either be null or a function, not "+typeof e);t.prototype=Object.create(e&&e.prototype,{constructor:{value:t,enumerable:!1,writable:!0,configurable:!0}}),e&&(Object.setPrototypeOf?Object.setPrototypeOf(t,e):t.__proto__=e)}(e,t),e}(i.default);e.default=u},function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var r,o=n(4),i=(r=o)&&r.__esModule?r:{default:r},a=n(6);var u=function(t){function e(t,n){return function(t,e){if(!(t instanceof e))throw new TypeError("Cannot call a class as a function")}(this,e),function(t,e){if(!t)throw new ReferenceError("this hasn't been initialised - super() hasn't been called");return!e||"object"!=typeof e&&"function"!=typeof e?t:e}(this,(e.__proto__||Object.getPrototypeOf(e)).call(this,t+(0,a.mod11)(t),n))}return function(t,e){if("function"!=typeof e&&null!==e)throw new TypeError("Super expression must either be null or a function, not "+typeof e);t.prototype=Object.create(e&&e.prototype,{constructor:{value:t,enumerable:!1,writable:!0,configurable:!0}}),e&&(Object.setPrototypeOf?Object.setPrototypeOf(t,e):t.__proto__=e)}(e,t),e}(i.default);e.default=u},function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var r,o=n(4),i=(r=o)&&r.__esModule?r:{default:r},a=n(6);var u=function(t){function e(t,n){return function(t,e){if(!(t instanceof e))throw new TypeError("Cannot call a class as a function")}(this,e),t+=(0,a.mod10)(t),t+=(0,a.mod10)(t),function(t,e){if(!t)throw new ReferenceError("this hasn't been initialised - super() hasn't been called");return!e||"object"!=typeof e&&"function"!=typeof e?t:e}(this,(e.__proto__||Object.getPrototypeOf(e)).call(this,t,n))}return function(t,e){if("function"!=typeof e&&null!==e)throw new TypeError("Super expression must either be null or a function, not "+typeof e);t.prototype=Object.create(e&&e.prototype,{constructor:{value:t,enumerable:!1,writable:!0,configurable:!0}}),e&&(Object.setPrototypeOf?Object.setPrototypeOf(t,e):t.__proto__=e)}(e,t),e}(i.default);e.default=u},function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var r,o=n(4),i=(r=o)&&r.__esModule?r:{default:r},a=n(6);var u=function(t){function e(t,n){return function(t,e){if(!(t instanceof e))throw new TypeError("Cannot call a class as a function")}(this,e),t+=(0,a.mod11)(t),t+=(0,a.mod10)(t),function(t,e){if(!t)throw new ReferenceError("this hasn't been initialised - super() hasn't been called");return!e||"object"!=typeof e&&"function"!=typeof e?t:e}(this,(e.__proto__||Object.getPrototypeOf(e)).call(this,t,n))}return function(t,e){if("function"!=typeof e&&null!==e)throw new TypeError("Super expression must either be null or a function, not "+typeof e);t.prototype=Object.create(e&&e.prototype,{constructor:{value:t,enumerable:!1,writable:!0,configurable:!0}}),e&&(Object.setPrototypeOf?Object.setPrototypeOf(t,e):t.__proto__=e)}(e,t),e}(i.default);e.default=u},function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0}),e.pharmacode=void 0;var r,o=function(){function t(t,e){for(var n=0;n<e.length;n++){var r=e[n];r.enumerable=r.enumerable||!1,r.configurable=!0,"value"in r&&(r.writable=!0),Object.defineProperty(t,r.key,r)}}return function(e,n,r){return n&&t(e.prototype,n),r&&t(e,r),e}}(),i=n(0);var a=function(t){function e(t,n){!function(t,e){if(!(t instanceof e))throw new TypeError("Cannot call a class as a function")}(this,e);var r=function(t,e){if(!t)throw new ReferenceError("this hasn't been initialised - super() hasn't been called");return!e||"object"!=typeof e&&"function"!=typeof e?t:e}(this,(e.__proto__||Object.getPrototypeOf(e)).call(this,t,n));return r.number=parseInt(t,10),r}return function(t,e){if("function"!=typeof e&&null!==e)throw new TypeError("Super expression must either be null or a function, not "+typeof e);t.prototype=Object.create(e&&e.prototype,{constructor:{value:t,enumerable:!1,writable:!0,configurable:!0}}),e&&(Object.setPrototypeOf?Object.setPrototypeOf(t,e):t.__proto__=e)}(e,t),o(e,[{key:"encode",value:function(){for(var t=this.number,e="";!isNaN(t)&&0!=t;)t%2==0?(e="11100"+e,t=(t-2)/2):(e="100"+e,t=(t-1)/2);return{data:e=e.slice(0,-2),text:this.text}}},{key:"valid",value:function(){return this.number>=3&&this.number<=131070}}]),e}(((r=i)&&r.__esModule?r:{default:r}).default);e.pharmacode=a},function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0}),e.codabar=void 0;var r,o=function(){function t(t,e){for(var n=0;n<e.length;n++){var r=e[n];r.enumerable=r.enumerable||!1,r.configurable=!0,"value"in r&&(r.writable=!0),Object.defineProperty(t,r.key,r)}}return function(e,n,r){return n&&t(e.prototype,n),r&&t(e,r),e}}(),i=n(0);var a=function(t){function e(t,n){!function(t,e){if(!(t instanceof e))throw new TypeError("Cannot call a class as a function")}(this,e),0===t.search(/^[0-9\-\$\:\.\+\/]+$/)&&(t="A"+t+"A");var r=function(t,e){if(!t)throw new ReferenceError("this hasn't been initialised - super() hasn't been called");return!e||"object"!=typeof e&&"function"!=typeof e?t:e}(this,(e.__proto__||Object.getPrototypeOf(e)).call(this,t.toUpperCase(),n));return r.text=r.options.text||r.text.replace(/[A-D]/g,""),r}return function(t,e){if("function"!=typeof e&&null!==e)throw new TypeError("Super expression must either be null or a function, not "+typeof e);t.prototype=Object.create(e&&e.prototype,{constructor:{value:t,enumerable:!1,writable:!0,configurable:!0}}),e&&(Object.setPrototypeOf?Object.setPrototypeOf(t,e):t.__proto__=e)}(e,t),o(e,[{key:"valid",value:function(){return-1!==this.data.search(/^[A-D][0-9\-\$\:\.\+\/]+[A-D]$/)}},{key:"encode",value:function(){for(var t=[],e=this.getEncodings(),n=0;n<this.data.length;n++)t.push(e[this.data.charAt(n)]),n!==this.data.length-1&&t.push("0");return{text:this.text,data:t.join("")}}},{key:"getEncodings",value:function(){return{0:"101010011",1:"101011001",2:"101001011",3:"110010101",4:"101101001",5:"110101001",6:"100101011",7:"100101101",8:"100110101",9:"110100101","-":"101001101",$:"101100101",":":"1101011011","/":"1101101011",".":"1101101101","+":"1011011011",A:"1011001001",B:"1001001011",C:"1010010011",D:"1010011001"}}}]),e}(((r=i)&&r.__esModule?r:{default:r}).default);e.codabar=a},function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0}),e.CODE93FullASCII=e.CODE93=void 0;var r=i(n(11)),o=i(n(43));function i(t){return t&&t.__esModule?t:{default:t}}e.CODE93=r.default,e.CODE93FullASCII=o.default},function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0});e.SYMBOLS=["0","1","2","3","4","5","6","7","8","9","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","-","."," ","$","/","+","%","($)","(%)","(/)","(+)","ÿ"],e.BINARIES=["100010100","101001000","101000100","101000010","100101000","100100100","100100010","101010000","100010010","100001010","110101000","110100100","110100010","110010100","110010010","110001010","101101000","101100100","101100010","100110100","100011010","101011000","101001100","101000110","100101100","100010110","110110100","110110010","110101100","110100110","110010110","110011010","101101100","101100110","100110110","100111010","100101110","111010100","111010010","111001010","101101110","101110110","110101110","100100110","111011010","111010110","100110010","101011110"],e.MULTI_SYMBOLS={"\0":["(%)","U"],"":["($)","A"],"":["($)","B"],"":["($)","C"],"":["($)","D"],"":["($)","E"],"":["($)","F"],"":["($)","G"],"\b":["($)","H"],"\t":["($)","I"],"\n":["($)","J"],"\v":["($)","K"],"\f":["($)","L"],"\r":["($)","M"],"":["($)","N"],"":["($)","O"],"":["($)","P"],"":["($)","Q"],"":["($)","R"],"":["($)","S"],"":["($)","T"],"":["($)","U"],"":["($)","V"],"":["($)","W"],"":["($)","X"],"":["($)","Y"],"":["($)","Z"],"":["(%)","A"],"":["(%)","B"],"":["(%)","C"],"":["(%)","D"],"":["(%)","E"],"!":["(/)","A"],'"':["(/)","B"],"#":["(/)","C"],"&":["(/)","F"],"'":["(/)","G"],"(":["(/)","H"],")":["(/)","I"],"*":["(/)","J"],",":["(/)","L"],":":["(/)","Z"],";":["(%)","F"],"<":["(%)","G"],"=":["(%)","H"],">":["(%)","I"],"?":["(%)","J"],"@":["(%)","V"],"[":["(%)","K"],"\\":["(%)","L"],"]":["(%)","M"],"^":["(%)","N"],_:["(%)","O"],"`":["(%)","W"],a:["(+)","A"],b:["(+)","B"],c:["(+)","C"],d:["(+)","D"],e:["(+)","E"],f:["(+)","F"],g:["(+)","G"],h:["(+)","H"],i:["(+)","I"],j:["(+)","J"],k:["(+)","K"],l:["(+)","L"],m:["(+)","M"],n:["(+)","N"],o:["(+)","O"],p:["(+)","P"],q:["(+)","Q"],r:["(+)","R"],s:["(+)","S"],t:["(+)","T"],u:["(+)","U"],v:["(+)","V"],w:["(+)","W"],x:["(+)","X"],y:["(+)","Y"],z:["(+)","Z"],"{":["(%)","P"],"|":["(%)","Q"],"}":["(%)","R"],"~":["(%)","S"],"":["(%)","T"]}},function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var r,o=function(){function t(t,e){for(var n=0;n<e.length;n++){var r=e[n];r.enumerable=r.enumerable||!1,r.configurable=!0,"value"in r&&(r.writable=!0),Object.defineProperty(t,r.key,r)}}return function(e,n,r){return n&&t(e.prototype,n),r&&t(e,r),e}}(),i=n(11);var a=function(t){function e(t,n){return function(t,e){if(!(t instanceof e))throw new TypeError("Cannot call a class as a function")}(this,e),function(t,e){if(!t)throw new ReferenceError("this hasn't been initialised - super() hasn't been called");return!e||"object"!=typeof e&&"function"!=typeof e?t:e}(this,(e.__proto__||Object.getPrototypeOf(e)).call(this,t,n))}return function(t,e){if("function"!=typeof e&&null!==e)throw new TypeError("Super expression must either be null or a function, not "+typeof e);t.prototype=Object.create(e&&e.prototype,{constructor:{value:t,enumerable:!1,writable:!0,configurable:!0}}),e&&(Object.setPrototypeOf?Object.setPrototypeOf(t,e):t.__proto__=e)}(e,t),o(e,[{key:"valid",value:function(){return/^[\x00-\x7f]+$/.test(this.data)}}]),e}(((r=i)&&r.__esModule?r:{default:r}).default);e.default=a},function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0}),e.GenericBarcode=void 0;var r,o=function(){function t(t,e){for(var n=0;n<e.length;n++){var r=e[n];r.enumerable=r.enumerable||!1,r.configurable=!0,"value"in r&&(r.writable=!0),Object.defineProperty(t,r.key,r)}}return function(e,n,r){return n&&t(e.prototype,n),r&&t(e,r),e}}(),i=n(0);var a=function(t){function e(t,n){return function(t,e){if(!(t instanceof e))throw new TypeError("Cannot call a class as a function")}(this,e),function(t,e){if(!t)throw new ReferenceError("this hasn't been initialised - super() hasn't been called");return!e||"object"!=typeof e&&"function"!=typeof e?t:e}(this,(e.__proto__||Object.getPrototypeOf(e)).call(this,t,n))}return function(t,e){if("function"!=typeof e&&null!==e)throw new TypeError("Super expression must either be null or a function, not "+typeof e);t.prototype=Object.create(e&&e.prototype,{constructor:{value:t,enumerable:!1,writable:!0,configurable:!0}}),e&&(Object.setPrototypeOf?Object.setPrototypeOf(t,e):t.__proto__=e)}(e,t),o(e,[{key:"encode",value:function(){return{data:"10101010101010101010101010101010101010101",text:this.text}}},{key:"valid",value:function(){return!0}}]),e}(((r=i)&&r.__esModule?r:{default:r}).default);e.GenericBarcode=a},function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0}),e.default=function(t){var e=[];return function t(n){if(Array.isArray(n))for(var r=0;r<n.length;r++)t(n[r]);else n.text=n.text||"",n.data=n.data||"",e.push(n)}(t),e}},function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0}),e.default=function(t){return t.marginTop=t.marginTop||t.margin,t.marginBottom=t.marginBottom||t.margin,t.marginRight=t.marginRight||t.margin,t.marginLeft=t.marginLeft||t.margin,t}},function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var r="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(t){return typeof t}:function(t){return t&&"function"==typeof Symbol&&t.constructor===Symbol&&t!==Symbol.prototype?"symbol":typeof t},o=u(n(48)),i=u(n(49)),a=n(15);function u(t){return t&&t.__esModule?t:{default:t}}function f(t){if("string"==typeof t)return function(t){var e=document.querySelectorAll(t);if(0===e.length)return;for(var n=[],r=0;r<e.length;r++)n.push(f(e[r]));return n}(t);if(Array.isArray(t)){for(var e=[],n=0;n<t.length;n++)e.push(f(t[n]));return e}if("undefined"!=typeof HTMLCanvasElement&&t instanceof HTMLImageElement)return u=t,{element:c=document.createElement("canvas"),options:(0,o.default)(u),renderer:i.default.CanvasRenderer,afterRender:function(){u.setAttribute("src",c.toDataURL())}};if(t&&t.nodeName&&"svg"===t.nodeName.toLowerCase()||"undefined"!=typeof SVGElement&&t instanceof SVGElement)return{element:t,options:(0,o.default)(t),renderer:i.default.SVGRenderer};if("undefined"!=typeof HTMLCanvasElement&&t instanceof HTMLCanvasElement)return{element:t,options:(0,o.default)(t),renderer:i.default.CanvasRenderer};if(t&&t.getContext)return{element:t,renderer:i.default.CanvasRenderer};if(t&&"object"===(void 0===t?"undefined":r(t))&&!t.nodeName)return{element:t,renderer:i.default.ObjectRenderer};throw new a.InvalidElementException;var u,c}e.default=f},function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var r=i(n(12)),o=i(n(13));function i(t){return t&&t.__esModule?t:{default:t}}e.default=function(t){var e={};for(var n in o.default)o.default.hasOwnProperty(n)&&(t.hasAttribute("jsbarcode-"+n.toLowerCase())&&(e[n]=t.getAttribute("jsbarcode-"+n.toLowerCase())),t.hasAttribute("data-"+n.toLowerCase())&&(e[n]=t.getAttribute("data-"+n.toLowerCase())));return e.value=t.getAttribute("jsbarcode-value")||t.getAttribute("data-value"),e=(0,r.default)(e)}},function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var r=a(n(50)),o=a(n(51)),i=a(n(52));function a(t){return t&&t.__esModule?t:{default:t}}e.default={CanvasRenderer:r.default,SVGRenderer:o.default,ObjectRenderer:i.default}},function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var r,o=function(){function t(t,e){for(var n=0;n<e.length;n++){var r=e[n];r.enumerable=r.enumerable||!1,r.configurable=!0,"value"in r&&(r.writable=!0),Object.defineProperty(t,r.key,r)}}return function(e,n,r){return n&&t(e.prototype,n),r&&t(e,r),e}}(),i=n(7),a=(r=i)&&r.__esModule?r:{default:r},u=n(14);var f=function(){function t(e,n,r){!function(t,e){if(!(t instanceof e))throw new TypeError("Cannot call a class as a function")}(this,t),this.canvas=e,this.encodings=n,this.options=r}return o(t,[{key:"render",value:function(){if(!this.canvas.getContext)throw new Error("The browser does not support canvas.");this.prepareCanvas();for(var t=0;t<this.encodings.length;t++){var e=(0,a.default)(this.options,this.encodings[t].options);this.drawCanvasBarcode(e,this.encodings[t]),this.drawCanvasText(e,this.encodings[t]),this.moveCanvasDrawing(this.encodings[t])}this.restoreCanvas()}},{key:"prepareCanvas",value:function(){var t=this.canvas.getContext("2d");t.save(),(0,u.calculateEncodingAttributes)(this.encodings,this.options,t);var e=(0,u.getTotalWidthOfEncodings)(this.encodings),n=(0,u.getMaximumHeightOfEncodings)(this.encodings);this.canvas.width=e+this.options.marginLeft+this.options.marginRight,this.canvas.height=n,t.clearRect(0,0,this.canvas.width,this.canvas.height),this.options.background&&(t.fillStyle=this.options.background,t.fillRect(0,0,this.canvas.width,this.canvas.height)),t.translate(this.options.marginLeft,0)}},{key:"drawCanvasBarcode",value:function(t,e){var n,r=this.canvas.getContext("2d"),o=e.data;n="top"==t.textPosition?t.marginTop+t.fontSize+t.textMargin:t.marginTop,r.fillStyle=t.lineColor;for(var i=0;i<o.length;i++){var a=i*t.width+e.barcodePadding;"1"===o[i]?r.fillRect(a,n,t.width,t.height):o[i]&&r.fillRect(a,n,t.width,t.height*o[i])}}},{key:"drawCanvasText",value:function(t,e){var n,r,o=this.canvas.getContext("2d"),i=t.fontOptions+" "+t.fontSize+"px "+t.font;t.displayValue&&(r="top"==t.textPosition?t.marginTop+t.fontSize-t.textMargin:t.height+t.textMargin+t.marginTop+t.fontSize,o.font=i,"left"==t.textAlign||e.barcodePadding>0?(n=0,o.textAlign="left"):"right"==t.textAlign?(n=e.width-1,o.textAlign="right"):(n=e.width/2,o.textAlign="center"),o.fillText(e.text,n,r))}},{key:"moveCanvasDrawing",value:function(t){this.canvas.getContext("2d").translate(t.width,0)}},{key:"restoreCanvas",value:function(){this.canvas.getContext("2d").restore()}}]),t}();e.default=f},function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var r,o=function(){function t(t,e){for(var n=0;n<e.length;n++){var r=e[n];r.enumerable=r.enumerable||!1,r.configurable=!0,"value"in r&&(r.writable=!0),Object.defineProperty(t,r.key,r)}}return function(e,n,r){return n&&t(e.prototype,n),r&&t(e,r),e}}(),i=n(7),a=(r=i)&&r.__esModule?r:{default:r},u=n(14);var f="http://www.w3.org/2000/svg",c=function(){function t(e,n,r){!function(t,e){if(!(t instanceof e))throw new TypeError("Cannot call a class as a function")}(this,t),this.svg=e,this.encodings=n,this.options=r,this.document=r.xmlDocument||document}return o(t,[{key:"render",value:function(){var t=this.options.marginLeft;this.prepareSVG();for(var e=0;e<this.encodings.length;e++){var n=this.encodings[e],r=(0,a.default)(this.options,n.options),o=this.createGroup(t,r.marginTop,this.svg);this.setGroupOptions(o,r),this.drawSvgBarcode(o,r,n),this.drawSVGText(o,r,n),t+=n.width}}},{key:"prepareSVG",value:function(){for(;this.svg.firstChild;)this.svg.removeChild(this.svg.firstChild);(0,u.calculateEncodingAttributes)(this.encodings,this.options);var t=(0,u.getTotalWidthOfEncodings)(this.encodings),e=(0,u.getMaximumHeightOfEncodings)(this.encodings),n=t+this.options.marginLeft+this.options.marginRight;this.setSvgAttributes(n,e),this.options.background&&this.drawRect(0,0,n,e,this.svg).setAttribute("fill",this.options.background)}},{key:"drawSvgBarcode",value:function(t,e,n){var r,o=n.data;r="top"==e.textPosition?e.fontSize+e.textMargin:0;for(var i=0,a=0,u=0;u<o.length;u++)a=u*e.width+n.barcodePadding,"1"===o[u]?i++:i>0&&(this.drawRect(a-e.width*i,r,e.width*i,e.height,t),i=0);i>0&&this.drawRect(a-e.width*(i-1),r,e.width*i,e.height,t)}},{key:"drawSVGText",value:function(t,e,n){var r,o,i=this.document.createElementNS(f,"text");e.displayValue&&(i.setAttribute("font-family",e.font),i.setAttribute("font-size",e.fontSize),e.fontOptions.includes("bold")&&i.setAttribute("font-weight","bold"),e.fontOptions.includes("italic")&&i.setAttribute("font-style","italic"),o="top"==e.textPosition?e.fontSize-e.textMargin:e.height+e.textMargin+e.fontSize,"left"==e.textAlign||n.barcodePadding>0?(r=0,i.setAttribute("text-anchor","start")):"right"==e.textAlign?(r=n.width-1,i.setAttribute("text-anchor","end")):(r=n.width/2,i.setAttribute("text-anchor","middle")),i.setAttribute("x",r),i.setAttribute("y",o),i.appendChild(this.document.createTextNode(n.text)),t.appendChild(i))}},{key:"setSvgAttributes",value:function(t,e){var n=this.svg;n.setAttribute("width",t+"px"),n.setAttribute("height",e+"px"),n.setAttribute("x","0px"),n.setAttribute("y","0px"),n.setAttribute("viewBox","0 0 "+t+" "+e),n.setAttribute("xmlns",f),n.setAttribute("version","1.1")}},{key:"createGroup",value:function(t,e,n){var r=this.document.createElementNS(f,"g");return r.setAttribute("transform","translate("+t+", "+e+")"),n.appendChild(r),r}},{key:"setGroupOptions",value:function(t,e){t.setAttribute("fill",e.lineColor)}},{key:"drawRect",value:function(t,e,n,r,o){var i=this.document.createElementNS(f,"rect");return i.setAttribute("x",t),i.setAttribute("y",e),i.setAttribute("width",n),i.setAttribute("height",r),o.appendChild(i),i}}]),t}();e.default=c},function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var r=function(){function t(t,e){for(var n=0;n<e.length;n++){var r=e[n];r.enumerable=r.enumerable||!1,r.configurable=!0,"value"in r&&(r.writable=!0),Object.defineProperty(t,r.key,r)}}return function(e,n,r){return n&&t(e.prototype,n),r&&t(e,r),e}}();var o=function(){function t(e,n,r){!function(t,e){if(!(t instanceof e))throw new TypeError("Cannot call a class as a function")}(this,t),this.object=e,this.encodings=n,this.options=r}return r(t,[{key:"render",value:function(){this.object.encodings=this.encodings}}]),t}();e.default=o},function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var r=function(){function t(t,e){for(var n=0;n<e.length;n++){var r=e[n];r.enumerable=r.enumerable||!1,r.configurable=!0,"value"in r&&(r.writable=!0),Object.defineProperty(t,r.key,r)}}return function(e,n,r){return n&&t(e.prototype,n),r&&t(e,r),e}}();var o=function(){function t(e){!function(t,e){if(!(t instanceof e))throw new TypeError("Cannot call a class as a function")}(this,t),this.api=e}return r(t,[{key:"handleCatch",value:function(t){if("InvalidInputException"!==t.name)throw t;if(this.api._options.valid===this.api._defaults.valid)throw t.message;this.api._options.valid(!1),this.api.render=function(){}}},{key:"wrapBarcodeCall",value:function(t){try{var e=t.apply(void 0,arguments);return this.api._options.valid(!0),e}catch(t){return this.handleCatch(t),this.api}}}]),t}();e.default=o}]);</script><script>
+  // ---------- STATE ----------
+  let products = [];   // {sku, name, price}
+  let orders = [];     // {id, shopOrderNo, waybillNo, date, timestamp, address, contact1, contact2, items:[{sku,name,qty,price}], deliveryFee, subtotal, total}
+  let settings = { shopOrderPrefix: 'SW-', nextShopOrderNumber: 1, nextWaybillNumber: 1001, theme: 'light' };
+  let currentOrderItems = []; // items being built in New Order panel
+  let selectedOrderProduct = null; // product chosen from search, for New Order panel
+  let editingOrderId = null; // set when the New Order panel is editing an existing order
+
+  // ---------- STORAGE HELPERS (browser localStorage — works fully offline, ----------
+  // ---------- no server required, 100% compatible with GitHub Pages)      ----------
+  const LS_KEYS = {
+    products: 'sw_products',
+    orders: 'sw_orders',
+    settings: 'sw_settings',
+    theme: 'sw_theme'
+  };
+
+  const DEFAULT_SETTINGS = { shopOrderPrefix: 'SW-', nextShopOrderNumber: 1, nextWaybillNumber: 1001, theme: 'light' };
+
+  // Detect whether localStorage is actually usable (private browsing / disabled
+  // storage can throw). Falls back to an in-memory store so the app never crashes.
+  const memoryFallback = {};
+  let lsAvailable = true;
+  try {
+    const testKey = '__sw_ls_test__';
+    window.localStorage.setItem(testKey, '1');
+    window.localStorage.removeItem(testKey);
+  } catch (e) { lsAvailable = false; }
+
+  function lsGet(key) {
+    try {
+      return lsAvailable ? window.localStorage.getItem(key) : (memoryFallback[key] ?? null);
+    } catch (e) { return null; }
+  }
+  function lsSet(key, value) {
+    try {
+      if (lsAvailable) window.localStorage.setItem(key, value);
+      else memoryFallback[key] = value;
+      return true;
+    } catch (e) { return false; }
+  }
+
+  // Safely parse JSON from storage; never throws, falls back to a default value
+  // if the data is missing or corrupted.
+  function safeParseJSON(raw, fallback) {
+    if (raw === null || raw === undefined) return fallback;
+    try {
+      const parsed = JSON.parse(raw);
+      return parsed === null || parsed === undefined ? fallback : parsed;
+    } catch (e) {
+      console.error('Corrupted data found in localStorage, using default value instead.', e);
+      return fallback;
+    }
+  }
+
+  // ----- Products -----
+  function loadProducts() {
+    const parsed = safeParseJSON(lsGet(LS_KEYS.products), []);
+    products = Array.isArray(parsed) ? parsed : [];
+  }
+  function saveProducts() {
+    if (!lsSet(LS_KEYS.products, JSON.stringify(products))) showToast('Save failed. Try again.');
+  }
+
+  // ----- Orders -----
+  function loadOrders() {
+    const parsed = safeParseJSON(lsGet(LS_KEYS.orders), []);
+    orders = Array.isArray(parsed) ? parsed : [];
+  }
+  function saveOrders() {
+    if (!lsSet(LS_KEYS.orders, JSON.stringify(orders))) showToast('Save failed. Try again.');
+  }
+
+  // ----- Settings (shop order prefix / next numbers) -----
+  function loadSettings() {
+    const parsed = safeParseJSON(lsGet(LS_KEYS.settings), null);
+    settings = Object.assign({}, DEFAULT_SETTINGS, (parsed && typeof parsed === 'object') ? parsed : {});
+  }
+  function saveSettings() {
+    if (!lsSet(LS_KEYS.settings, JSON.stringify(settings))) showToast('Save failed. Try again.');
+  }
+
+  // ----- Theme (kept in its own dedicated key, always mirrored into settings.theme) -----
+  function loadTheme() {
+    const stored = lsGet(LS_KEYS.theme);
+    settings.theme = (stored === 'dark' || stored === 'light') ? stored : (settings.theme || 'light');
+  }
+  function saveTheme() {
+    lsSet(LS_KEYS.theme, settings.theme);
+    // Keep the copy inside settings in sync too, in case older code reads it from there.
+    saveSettings();
+  }
+
+  // ----- Combined helpers -----
+  function saveAll() {
+    saveProducts();
+    saveOrders();
+    saveSettings();
+    saveTheme();
+  }
+
+  function loadAll() {
+    loadProducts();
+    loadOrders();
+    loadSettings();
+    loadTheme();
+
+    applyTheme(settings.theme);
+    renderProducts();
+    renderOrders();
+    renderNewOrderActions();
+    document.getElementById('shopOrderPrefixInput').value = settings.shopOrderPrefix || '';
+    document.getElementById('nextShopOrderInput').value = settings.nextShopOrderNumber;
+    document.getElementById('nextWaybillInput').value = settings.nextWaybillNumber;
+  }
+
+  // ---------- TOAST ----------
+  let toastTimer;
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+  }
+
+  // ---------- THEME ----------
+  function applyTheme(theme) {
+    const dark = theme === 'dark';
+    document.body.setAttribute('data-theme', dark ? 'dark' : 'light');
+    const btn = document.getElementById('themeToggleBtn');
+    if (btn) btn.textContent = dark ? '☀️' : '🌙';
+  }
+  async function toggleTheme() {
+    settings.theme = settings.theme === 'dark' ? 'light' : 'dark';
+    applyTheme(settings.theme);
+    await saveTheme();
+  }
+
+  // ---------- TABS ----------
+  function switchTab(tab) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('panel-' + tab).classList.add('active');
+  }
+
+  // ---------- FORMAT ----------
+  function fmt(n) {
+    return 'Rs ' + (Number(n) || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+  }
+
+  // ---------- PRODUCTS ----------
+  async function addProduct() {
+    const sku = document.getElementById('newSku').value.trim();
+    const name = document.getElementById('newProdName').value.trim();
+    const price = parseFloat(document.getElementById('newProdPrice').value) || 0;
+    if (!sku || !name) { showToast('SKU and Name are required'); return; }
+    if (products.some(p => p.sku.toLowerCase() === sku.toLowerCase())) {
+      showToast('SKU already exists'); return;
+    }
+    products.push({ sku, name, price });
+    await saveProducts();
+    document.getElementById('newSku').value = '';
+    document.getElementById('newProdName').value = '';
+    document.getElementById('newProdPrice').value = '';
+    renderProducts();
+    showToast('Product added');
+  }
+
+  async function removeProduct(sku) {
+    products = products.filter(p => p.sku !== sku);
+    await saveProducts();
+    if (selectedOrderProduct && selectedOrderProduct.sku === sku) { clearSelectedProduct(); }
+    renderProducts();
+    showToast('Product removed');
+  }
+
+  function startEditProduct(sku) {
+    renderProducts(sku);
+  }
+
+  async function saveEditProduct(sku) {
+    const row = document.querySelector(`tr[data-sku="${CSS.escape(sku)}"]`);
+    const newSku = row.querySelector('.edit-sku').value.trim();
+    const newName = row.querySelector('.edit-name').value.trim();
+    const newPrice = parseFloat(row.querySelector('.edit-price').value) || 0;
+    if (!newSku || !newName) { showToast('SKU and Name are required'); return; }
+    if (newSku.toLowerCase() !== sku.toLowerCase() && products.some(p => p.sku.toLowerCase() === newSku.toLowerCase())) {
+      showToast('SKU already exists'); return;
+    }
+    const idx = products.findIndex(p => p.sku === sku);
+    products[idx] = { sku: newSku, name: newName, price: newPrice };
+    await saveProducts();
+    if (selectedOrderProduct && selectedOrderProduct.sku === sku) { selectedOrderProduct = products[idx]; renderSelectedProductChip(); }
+    renderProducts();
+    showToast('Product updated');
+  }
+
+  function renderProducts(editingSku) {
+    const tbody = document.getElementById('productTableBody');
+    tbody.innerHTML = '';
+    document.getElementById('productEmptyNote').style.display = products.length ? 'none' : 'block';
+    products.forEach(p => {
+      const tr = document.createElement('tr');
+      tr.setAttribute('data-sku', p.sku);
+      if (editingSku === p.sku) {
+        tr.innerHTML = `
+          <td><input type="text" class="edit-sku" value="${escapeHtml(p.sku)}"></td>
+          <td><input type="text" class="edit-name" value="${escapeHtml(p.name)}"></td>
+          <td class="num"><input type="number" class="edit-price" value="${p.price}" step="0.01" min="0"></td>
+          <td style="white-space:nowrap;">
+            <button class="btn small" style="margin-top:0;" onclick="saveEditProduct('${escapeAttr(p.sku)}')">Save</button>
+            <button class="btn small secondary" style="margin-top:0;" onclick="renderProducts()">Cancel</button>
+          </td>`;
+      } else {
+        tr.innerHTML = `
+          <td>${escapeHtml(p.sku)}</td>
+          <td>${escapeHtml(p.name)}</td>
+          <td class="num">${fmt(p.price)}</td>
+          <td style="white-space:nowrap;">
+            <button class="btn small secondary" style="margin-top:0;" onclick="startEditProduct('${escapeAttr(p.sku)}')">Edit</button>
+            <button class="btn small danger" style="margin-top:0;" onclick="removeProduct('${escapeAttr(p.sku)}')">Remove</button>
+          </td>`;
+      }
+      tbody.appendChild(tr);
+    });
+  }
+
+  // ---------- PRODUCT SEARCH (New Order panel) ----------
+  function onProductSearchInput() {
+    const q = document.getElementById('ordProductSearch').value.trim().toLowerCase();
+    const box = document.getElementById('ordProductResults');
+    if (!products.length) {
+      box.innerHTML = '<div class="psr-empty">No products yet — add one in the Products tab.</div>';
+      box.classList.add('show');
+      return;
+    }
+    const matches = q
+      ? products.filter(p => p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q))
+      : products;
+    if (!matches.length) {
+      box.innerHTML = '<div class="psr-empty">No matching products.</div>';
+    } else {
+      box.innerHTML = matches.map(p => `
+        <div class="psr-item" onmousedown="event.preventDefault(); selectOrderProduct('${escapeAttr(p.sku)}')">
+          <span class="psr-name">${escapeHtml(p.name)}</span>
+          <span class="psr-sku">${escapeHtml(p.sku)} · ${fmt(p.price)}</span>
+        </div>`).join('');
+    }
+    box.classList.add('show');
+  }
+
+  function hideProductSearchResults() {
+    // slight delay so a click on a result (mousedown) registers before the list hides
+    setTimeout(() => document.getElementById('ordProductResults').classList.remove('show'), 120);
+  }
+
+  function selectOrderProduct(sku) {
+    const prod = products.find(p => p.sku === sku);
+    if (!prod) return;
+    selectedOrderProduct = prod;
+    document.getElementById('ordProductSearch').value = '';
+    document.getElementById('ordProductResults').classList.remove('show');
+    renderSelectedProductChip();
+    document.getElementById('ordQty').focus();
+  }
+
+  function clearSelectedProduct() {
+    selectedOrderProduct = null;
+    renderSelectedProductChip();
+  }
+
+  function renderSelectedProductChip() {
+    const chip = document.getElementById('selectedProductChip');
+    const label = document.getElementById('selectedProductLabel');
+    if (selectedOrderProduct) {
+      label.textContent = `Selected: ${selectedOrderProduct.name} (${selectedOrderProduct.sku}) — ${fmt(selectedOrderProduct.price)}`;
+      chip.classList.add('show');
+    } else {
+      label.textContent = '';
+      chip.classList.remove('show');
+    }
+  }
+
+  // ---------- NEW ORDER ----------
+  function addOrderItem() {
+    const qty = parseInt(document.getElementById('ordQty').value) || 1;
+    if (!selectedOrderProduct) { showToast('Search and select a product first'); return; }
+    const prod = selectedOrderProduct;
+    const existing = currentOrderItems.find(i => i.sku === prod.sku);
+    if (existing) { existing.qty += qty; }
+    else { currentOrderItems.push({ sku: prod.sku, name: prod.name, price: prod.price, qty }); }
+    clearSelectedProduct();
+    document.getElementById('ordProductSearch').value = '';
+    document.getElementById('ordQty').value = '1';
+    renderOrderItems();
+    showToast('Item added');
+  }
+
+  function removeOrderItem(sku) {
+    currentOrderItems = currentOrderItems.filter(i => i.sku !== sku);
+    renderOrderItems();
+  }
+
+  function renderOrderItems() {
+    const tbody = document.getElementById('ordItemsBody');
+    tbody.innerHTML = '';
+    document.getElementById('ordItemsEmptyNote').style.display = currentOrderItems.length ? 'none' : 'block';
+    currentOrderItems.forEach(i => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${escapeHtml(i.name)} <span style="color:#888;font-size:12px;">(${escapeHtml(i.sku)})</span></td>
+        <td class="num">${i.qty}</td>
+        <td class="num">${fmt(i.price)}</td>
+        <td class="num">${fmt(i.price * i.qty)}</td>
+        <td><button class="btn small danger" style="margin-top:0;" onclick="removeOrderItem('${escapeAttr(i.sku)}')">✕</button></td>`;
+      tbody.appendChild(tr);
+    });
+    renderOrderTotals();
+  }
+
+  function computeOrderTotals() {
+    const subtotal = currentOrderItems.reduce((sum, i) => sum + i.price * i.qty, 0);
+    const delivery = parseFloat(document.getElementById('ordDeliveryFee').value) || 0;
+    return { subtotal, delivery, total: subtotal + delivery };
+  }
+
+  function renderOrderTotals() {
+    const { subtotal, delivery, total } = computeOrderTotals();
+    document.getElementById('ordSubtotal').textContent = fmt(subtotal);
+    document.getElementById('ordDeliveryDisplay').textContent = fmt(delivery);
+    document.getElementById('ordGrandTotal').textContent = fmt(total);
+  }
+
+  function resetOrderForm() {
+    currentOrderItems = [];
+    document.getElementById('ordAddress').value = '';
+    document.getElementById('ordContact1').value = '';
+    document.getElementById('ordContact2').value = '';
+    document.getElementById('ordDeliveryFee').value = '0';
+    document.getElementById('ordProductSearch').value = '';
+    clearSelectedProduct();
+    renderOrderItems();
+  }
+
+  function validateAndComputeOrderData() {
+    const address = document.getElementById('ordAddress').value.trim();
+    const contact1 = document.getElementById('ordContact1').value.trim();
+    const contact2 = document.getElementById('ordContact2').value.trim();
+    if (!address) { showToast('Customer address is required'); return null; }
+    if (!currentOrderItems.length) { showToast('Add at least one item'); return null; }
+    const { subtotal, delivery, total } = computeOrderTotals();
+    return {
+      address, contact1, contact2,
+      items: JSON.parse(JSON.stringify(currentOrderItems)),
+      deliveryFee: delivery, subtotal, total
+    };
+  }
+
+  async function buildOrder() {
+    const data = validateAndComputeOrderData();
+    if (!data) return null;
+    const shopOrderNo = (settings.shopOrderPrefix || 'SW-') + String(settings.nextShopOrderNumber).padStart(3, '0');
+    const waybillNo = String(settings.nextWaybillNumber);
+    const now = new Date();
+    const order = Object.assign({
+      id: 'ord_' + Date.now(),
+      shopOrderNo,
+      waybillNo,
+      date: now.toLocaleDateString(),
+      timestamp: now.getTime()
+    }, data);
+    orders.unshift(order);
+    settings.nextShopOrderNumber += 1;
+    settings.nextWaybillNumber += 1;
+    await saveOrders();
+    await saveSettings();
+    document.getElementById('nextShopOrderInput').value = settings.nextShopOrderNumber;
+    document.getElementById('nextWaybillInput').value = settings.nextWaybillNumber;
+    renderOrders();
+    return order;
+  }
+
+  async function updateOrderInPlace() {
+    const data = validateAndComputeOrderData();
+    if (!data) return null;
+    const idx = orders.findIndex(o => o.id === editingOrderId);
+    if (idx === -1) { showToast('That order no longer exists'); return null; }
+    orders[idx] = Object.assign({}, orders[idx], data);
+    await saveOrders();
+    renderOrders();
+    return orders[idx];
+  }
+
+  async function createOrderOnly() {
+    const order = await buildOrder();
+    if (order) { resetOrderForm(); showToast('Order created: ' + order.shopOrderNo + ' (Waybill ' + order.waybillNo + ')'); switchTab('orders'); }
+  }
+
+  async function createOrderAndPrint() {
+    const order = await buildOrder();
+    if (order) {
+      resetOrderForm();
+      showToast('Order created: ' + order.shopOrderNo + ' (Waybill ' + order.waybillNo + ')');
+      printOrders([order]);
+    }
+  }
+
+  async function saveOrderChanges() {
+    const order = await updateOrderInPlace();
+    if (order) {
+      const wb = order.shopOrderNo;
+      editingOrderId = null;
+      resetOrderForm();
+      renderNewOrderActions();
+      showToast('Order updated: ' + wb);
+      switchTab('orders');
+    }
+  }
+
+  async function saveOrderChangesAndPrint() {
+    const order = await updateOrderInPlace();
+    if (order) {
+      const wb = order.shopOrderNo;
+      editingOrderId = null;
+      resetOrderForm();
+      renderNewOrderActions();
+      showToast('Order updated: ' + wb);
+      printOrders([order]);
+    }
+  }
+
+  function editOrder(id) {
+    const order = orders.find(o => o.id === id);
+    if (!order) { showToast('Order not found'); return; }
+    editingOrderId = id;
+    currentOrderItems = JSON.parse(JSON.stringify(order.items || []));
+    document.getElementById('ordAddress').value = order.address || '';
+    document.getElementById('ordContact1').value = order.contact1 || '';
+    document.getElementById('ordContact2').value = order.contact2 || '';
+    document.getElementById('ordDeliveryFee').value = order.deliveryFee || 0;
+    document.getElementById('ordProductSearch').value = '';
+    clearSelectedProduct();
+    renderOrderItems();
+    renderNewOrderActions();
+    switchTab('neworder');
+  }
+
+  function cancelEditOrder() {
+    editingOrderId = null;
+    resetOrderForm();
+    renderNewOrderActions();
+    switchTab('orders');
+  }
+
+  function renderNewOrderActions() {
+    const title = document.getElementById('neworderTitle');
+    const actions = document.getElementById('neworderActions');
+    if (editingOrderId) {
+      const order = orders.find(o => o.id === editingOrderId);
+      title.textContent = 'Edit Order' + (order ? ' — ' + order.shopOrderNo : '');
+      actions.innerHTML = `
+        <button class="btn" onclick="saveOrderChangesAndPrint()">💾 Save &amp; Print Packing Slip</button>
+        <button class="btn secondary" onclick="saveOrderChanges()">Save Changes</button>
+        <button class="btn danger" onclick="cancelEditOrder()">✕ Cancel Edit</button>`;
+    } else {
+      title.textContent = 'Create New Order';
+      actions.innerHTML = `
+        <button class="btn" onclick="createOrderAndPrint()">Create Order &amp; Print Packing Slip</button>
+        <button class="btn secondary" onclick="createOrderOnly()">Create Order Only</button>`;
+    }
+  }
+
+  // ---------- ORDERS LIST ----------
+  function getSearchedOrders() {
+    const qEl = document.getElementById('orderSearchInput');
+    const q = qEl ? qEl.value.trim().toLowerCase() : '';
+    if (!q) return orders;
+    return orders.filter(o =>
+      String(o.shopOrderNo || '').toLowerCase().includes(q) ||
+      String(o.waybillNo || '').toLowerCase().includes(q) ||
+      String(o.address || '').toLowerCase().includes(q) ||
+      String(o.contact1 || '').toLowerCase().includes(q) ||
+      String(o.contact2 || '').toLowerCase().includes(q)
+    );
+  }
+
+  function renderOrders() {
+    const tbody = document.getElementById('ordersTableBody');
+    tbody.innerHTML = '';
+    const filtered = getSearchedOrders();
+    const emptyNote = document.getElementById('ordersEmptyNote');
+    if (!orders.length) {
+      emptyNote.textContent = 'No orders yet.';
+      emptyNote.style.display = 'block';
+    } else if (!filtered.length) {
+      emptyNote.textContent = 'No orders match your search.';
+      emptyNote.style.display = 'block';
+    } else {
+      emptyNote.style.display = 'none';
+    }
+    filtered.forEach(o => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><input type="checkbox" class="ord-check" data-id="${escapeAttr(o.id)}" onchange="updateSelectedCount()"></td>
+        <td>${escapeHtml(o.shopOrderNo)}</td>
+        <td>${escapeHtml(o.waybillNo)}</td>
+        <td>${escapeHtml(o.date)}</td>
+        <td>${escapeHtml((o.address || '').split('\n')[0])}</td>
+        <td class="num">${fmt(o.total)}</td>
+        <td style="white-space:nowrap;">
+          <button class="btn small secondary" style="margin-top:0;" onclick="editOrder('${escapeAttr(o.id)}')">Edit</button>
+          <button class="btn small secondary" style="margin-top:0;" onclick="printOrderById('${escapeAttr(o.id)}')">Print</button>
+          <button class="btn small danger" style="margin-top:0;" onclick="deleteOrder('${escapeAttr(o.id)}')">Delete</button>
+        </td>`;
+      tbody.appendChild(tr);
+    });
+    updateSelectedCount();
+  }
+
+  async function deleteOrder(id) {
+    orders = orders.filter(o => o.id !== id);
+    await saveOrders();
+    renderOrders();
+    showToast('Order deleted');
+  }
+
+  function toggleSelectAll(fromBox) {
+    const boxes = document.querySelectorAll('.ord-check');
+    if (fromBox) {
+      const checked = document.getElementById('selectAllBox').checked;
+      boxes.forEach(b => b.checked = checked);
+    } else {
+      const anyUnchecked = Array.from(boxes).some(b => !b.checked);
+      boxes.forEach(b => b.checked = anyUnchecked);
+    }
+    updateSelectedCount();
+  }
+
+  function bulkPrintSelected() {
+    const ids = Array.from(document.querySelectorAll('.ord-check:checked')).map(b => b.dataset.id);
+    if (!ids.length) { showToast('Select at least one order to print'); return; }
+    const selected = orders.filter(o => ids.includes(o.id));
+    printOrders(selected);
+  }
+
+  function printOrderById(id) {
+    const order = orders.find(o => o.id === id);
+    if (!order) { showToast('Could not find that order to print'); return; }
+    printOrders([order]);
+  }
+
+  function updateSelectedCount() {
+    const count = document.querySelectorAll('.ord-check:checked').length;
+    const el = document.getElementById('selectedCount');
+    if (el) el.textContent = count ? `${count} selected` : '';
+  }
+
+  // ---------- PRINT / SLIP RENDERING ----------
+  function slipHTML(order, idx) {
+    const rows = order.items.map(i => `
+      <tr>
+        <td>${escapeHtml(i.name)}</td>
+        <td class="num">${i.qty}</td>
+        <td class="num">${fmt(i.price)}</td>
+        <td class="num">${fmt(i.price * i.qty)}</td>
+      </tr>`).join('');
+    const barcodeId = 'barcode_' + idx;
+    return `
+      <div class="slip">
+        <div class="s-header">
+          <div class="s-shop-name">Shop Win</div>
+          <div class="s-tagline">Quality You Can Trust</div>
+          <div class="s-doc-title">Waybill / Packing Slip</div>
+        </div>
+        <div class="s-body">
+          <div class="s-section s-contacts">
+            <div><div class="s-label">Shop Order No</div><div class="s-value">${escapeHtml(order.shopOrderNo)}</div></div>
+            <div><div class="s-label">Waybill No</div><div class="s-value">${escapeHtml(order.waybillNo)}</div></div>
+          </div>
+          <div class="s-section">
+            <div class="s-label">Customer Address</div>
+            <div class="s-value">${escapeHtml(order.address)}</div>
+          </div>
+          <div class="s-section s-contacts">
+            <div><div class="s-label">Contact 1</div><div class="s-value">${escapeHtml(order.contact1 || '-')}</div></div>
+            <div><div class="s-label">Contact 2</div><div class="s-value">${escapeHtml(order.contact2 || '-')}</div></div>
+          </div>
+          <div class="s-section" style="border-bottom:none;">
+            <div class="s-label">Items</div>
+            <table class="s-items">
+              <thead><tr><th>Item</th><th class="num">Qty</th><th class="num">Price</th><th class="num">Total</th></tr></thead>
+              <tbody>${rows}</tbody>
+            </table>
+            <div class="s-totals">
+              <div class="trow"><span>Subtotal</span><span>${fmt(order.subtotal)}</span></div>
+              <div class="trow"><span>Delivery Fee</span><span>${fmt(order.deliveryFee)}</span></div>
+              <div class="trow grand"><span>Total</span><span>${fmt(order.total)}</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="s-barcode-area">
+          <svg id="${barcodeId}"></svg>
+        </div>
+        <div class="s-footer">Thank you for shopping with Shop Win</div>
+      </div>`;
+  }
+
+  function printOrders(orderList) {
+    if (!orderList || !orderList.length || orderList.some(o => !o)) {
+      showToast('Could not find that order to print'); return;
+    }
+    const area = document.getElementById('printArea');
+    area.innerHTML = orderList.map((o, idx) => slipHTML(o, idx)).join('');
+    orderList.forEach((o, idx) => {
+      try {
+        JsBarcode('#barcode_' + idx, o.waybillNo, {
+          format: 'CODE128', lineColor: '#000', width: 2.4, height: 70,
+          displayValue: true, fontSize: 16, margin: 10
+        });
+      } catch (e) { console.error(e); }
+    });
+    // Call print() synchronously (no setTimeout) so this stays inside the
+    // original click event's user-gesture context — some browsers silently
+    // block window.print() if it fires from an async callback.
+    window.print();
+  }
+
+  // ---------- EXPORT (date-range CSV / Excel / PDF) ----------
+  function getFilteredOrdersForExport() {
+    const fromVal = document.getElementById('exportFromDate').value;
+    const toVal = document.getElementById('exportToDate').value;
+    const fromTs = fromVal ? new Date(fromVal + 'T00:00:00').getTime() : null;
+    const toTs = toVal ? new Date(toVal + 'T23:59:59').getTime() : null;
+    return orders
+      .filter(o => {
+        const ts = o.timestamp || Date.parse(o.date) || 0;
+        if (fromTs !== null && ts < fromTs) return false;
+        if (toTs !== null && ts > toTs) return false;
+        return true;
+      })
+      .slice()
+      .sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+  }
+
+  function exportRangeLabel() {
+    const f = document.getElementById('exportFromDate').value;
+    const t = document.getElementById('exportToDate').value;
+    if (!f && !t) return 'All Orders';
+    return `${f || 'Start'} to ${t || 'Today'}`;
+  }
+
+  function dateStamp() { return new Date().toISOString().slice(0, 10); }
+
+  function downloadBlob(content, filename, mime) {
+    const blob = new Blob([content], { type: mime });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  function buildExportRows(list) {
+    const header = ['Shop Order No', 'Waybill No', 'Barcode Number', 'Date', 'Customer Address', 'Contact 1', 'Contact 2', 'Items', 'Subtotal', 'Delivery Fee', 'Total'];
+    const rows = list.map(o => [
+      o.shopOrderNo,
+      o.waybillNo,
+      o.waybillNo, // the barcode encodes this exact waybill number
+      o.date,
+      (o.address || '').replace(/\n/g, ' | '),
+      o.contact1 || '',
+      o.contact2 || '',
+      (o.items || []).map(i => `${i.name} x${i.qty}`).join('; '),
+      o.subtotal,
+      o.deliveryFee,
+      o.total
+    ]);
+    return [header, ...rows];
+  }
+
+  function csvEscape(val) {
+    const s = String(val == null ? '' : val);
+    if (/[",\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+    return s;
+  }
+
+  function exportCSV(list) {
+    const rows = buildExportRows(list);
+    const csv = rows.map(r => r.map(csvEscape).join(',')).join('\r\n');
+    downloadBlob(csv, 'shopwin_orders_' + dateStamp() + '.csv', 'text/csv;charset=utf-8;');
+    showToast('CSV exported');
+  }
+
+  function exportExcel(list) {
+    const rows = buildExportRows(list);
+    let html = '<table><thead><tr>' + rows[0].map(h => `<th>${escapeHtml(h)}</th>`).join('') + '</tr></thead><tbody>';
+    for (let i = 1; i < rows.length; i++) {
+      html += '<tr>' + rows[i].map(c => `<td>${escapeHtml(c)}</td>`).join('') + '</tr>';
+    }
+    html += '</tbody></table>';
+    const full = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="UTF-8"></head><body>${html}</body></html>`;
+    downloadBlob(full, 'shopwin_orders_' + dateStamp() + '.xls', 'application/vnd.ms-excel');
+    showToast('Excel file exported');
+  }
+
+  function exportReportHTML(list) {
+    const rows = list.map(o => `
+      <tr>
+        <td>${escapeHtml(o.shopOrderNo)}</td>
+        <td>${escapeHtml(o.waybillNo)}</td>
+        <td>${escapeHtml(o.waybillNo)}</td>
+        <td>${escapeHtml(o.date)}</td>
+        <td>${escapeHtml((o.address || '').split('\n')[0])}</td>
+        <td>${escapeHtml(o.contact1 || '-')}</td>
+        <td class="num">${fmt(o.subtotal)}</td>
+        <td class="num">${fmt(o.deliveryFee)}</td>
+        <td class="num">${fmt(o.total)}</td>
+      </tr>`).join('');
+    const grand = list.reduce((s, o) => s + (o.total || 0), 0);
+    return `
+      <div class="export-doc">
+        <div class="ed-header">
+          <div class="ed-shop-name">Shop Win</div>
+          <div class="ed-sub">Orders Export Report</div>
+          <div class="ed-range">${escapeHtml(exportRangeLabel())} &middot; ${list.length} order(s)</div>
+        </div>
+        <table class="ed-table">
+          <thead><tr><th>Shop Order No</th><th>Waybill No</th><th>Barcode No</th><th>Date</th><th>Customer</th><th>Contact</th><th class="num">Subtotal</th><th class="num">Delivery</th><th class="num">Total</th></tr></thead>
+          <tbody>${rows}</tbody>
+          <tfoot><tr><td colspan="8" style="text-align:right;font-weight:bold;">Grand Total</td><td class="num" style="font-weight:bold;">${fmt(grand)}</td></tr></tfoot>
+        </table>
+      </div>`;
+  }
+
+  function exportPDF(list) {
+    const area = document.getElementById('printArea');
+    area.innerHTML = exportReportHTML(list);
+    window.print();
+    showToast('Use "Save as PDF" in the print dialog');
+  }
+
+  function exportOrders(format) {
+    const list = getFilteredOrdersForExport();
+    if (!list.length) { showToast('No orders in that date range'); return; }
+    if (format === 'csv') exportCSV(list);
+    else if (format === 'xlsx') exportExcel(list);
+    else if (format === 'pdf') exportPDF(list);
+  }
+
+  // ---------- SETTINGS ----------
+  async function saveWaybillSettings() {
+    const prefix = document.getElementById('shopOrderPrefixInput').value.trim();
+    const nextShopOrder = parseInt(document.getElementById('nextShopOrderInput').value);
+    const nextWaybill = parseInt(document.getElementById('nextWaybillInput').value);
+    if (isNaN(nextShopOrder) || nextShopOrder < 0) { showToast('Enter a valid Shop Order number'); return; }
+    if (isNaN(nextWaybill) || nextWaybill < 0) { showToast('Enter a valid Waybill number'); return; }
+    settings.shopOrderPrefix = prefix;
+    settings.nextShopOrderNumber = nextShopOrder;
+    settings.nextWaybillNumber = nextWaybill;
+    await saveSettings();
+    showToast('Numbering settings updated');
+  }
+
+  // ---------- UTIL ----------
+  function escapeHtml(str) {
+    return String(str == null ? '' : str)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+  function escapeAttr(str) {
+    return String(str == null ? '' : str).replace(/'/g, "\\'");
+  }
+
+  // ---------- INIT ----------
+  loadAll();
+</script>
+</body>
+</html>
